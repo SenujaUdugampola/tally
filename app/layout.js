@@ -1,6 +1,8 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header";
+import { ConvexClientProvider } from "@/components/ConvexClientProvider";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const inter = Inter({
   subsets: ["latin"]
@@ -17,14 +19,19 @@ export default function RootLayout({ children }) {
       lang="en"
       className={inter.className}>
       <head>
-        <link rel="icon" type="logos/logo-s.png" sizes="any" />
+        <link rel="icon" href="/logos/logo-s.png" type="image/png" sizes="any" />
 
       </head>
       <body className="min-h-full flex flex-col">
-        
-        <Header />
+        <ClerkProvider>
+          <ConvexClientProvider>
 
-        <main className="min-h-screen"> {children} </main>
+            <Header />
+
+              
+            <main className="min-h-screen"> {children} </main>
+          </ConvexClientProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
