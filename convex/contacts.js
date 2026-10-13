@@ -84,6 +84,7 @@ export const createGroup=mutation({
     args: {
         name: v.string(),
         description: v.optional(v.string()),
+        members: v.array(v.id("users")),
     },
     handler: async (ctx, args) => {
         const currentUser = await ctx.runQuery(api.users.getCurrentUser);

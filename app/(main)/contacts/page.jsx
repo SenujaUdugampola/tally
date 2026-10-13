@@ -27,6 +27,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import CreateGroupModal from "./_components/creategroupModal"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 const getInitials = (name = "") =>
   name
@@ -66,9 +69,11 @@ const EmptyState = ({ type, onAction }) => {
 }
 
 const ContactsPage = () => {
+  const [isCreatingGroupModalOpen, setIsCreatingGroupModalOpen] = useState(false)
   const { data, loading } = useConvexQuery(api.contacts.getAllContacts)
   const users = data?.users ?? []
   const groups = data?.groups ?? []
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -80,7 +85,7 @@ const ContactsPage = () => {
   }
 
   return (
-    <div className="relative min-h-[80vh] overflow-hidden px-4 sm:px-20 dark:from-[#21152a] dark:via-background dark:to-[#16152b]">
+    <div className="relative min-h-[80vh] overflow-hidden px-4 sm:px-10 dark:from-[#21152a] dark:via-background dark:to-[#16152b]">
       <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full" />
       <div className="pointer-events-none absolute -bottom-32 -left-24 size-80 rounded-full" />
       <div className="container relative mx-auto">
@@ -108,6 +113,7 @@ const ContactsPage = () => {
             <Button
               size="lg"
               className="h-11 px-5 bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white hover:from-[#a941c5] hover:to-[#7058d5] focus-visible:ring-[#b94bdb]"
+              onClick={() => setIsCreatingGroupModalOpen(true)}
             >
               <Users />
               Create Group
@@ -192,6 +198,11 @@ const ContactsPage = () => {
             )}
           </TabsContent>
         </Tabs>
+        <CreateGroupModal 
+          isOpen={isCreatingGroupModalOpen}
+          onClose={() => setIsCreatingGroupModalOpen(false)}
+          // onSuccess={(groupId) => router.push(`/groups/${groupId}`)}
+        />
       </div>
     </div>
   )
