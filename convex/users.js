@@ -1,4 +1,6 @@
-import { mutation } from "./_generated/server";
+import { v } from "convex/values";
+import { internal } from "./_generated/api";
+import { mutation, query } from "./_generated/server";
 
 //convex has query - fetch , mutation - create, update, delete
 export const store = mutation({
@@ -20,19 +22,66 @@ export const store = mutation({
         q.eq("tokenIdentifier", identity.tokenIdentifier),
       )
       .unique();
+
+    const safeName = identity.name ?? "Anonymous";
+
     if (user !== null) {
-      // If we've seen this identity before but the name has changed, patch the value.
-      if (user.name !== identity.name) {
-        await ctx.db.patch("users", user._id, { name: identity.name });
+      // Update the user if either the name OR the image has changed
+      if (user.name !== safeName || user.imageUrl !== identity.pictureUrl) {
+        await ctx.db.patch("users", user._id, { 
+          name: safeName,
+          imageUrl: identity.pictureUrl 
+        });
       }
       return user._id;
     }
+
     // If it's a new identity, create a new `User`.
     return await ctx.db.insert("users", {
-      name: identity.name ?? "Anonymous",
+      name: safeName,
       email: identity.email,
       tokenIdentifier: identity.tokenIdentifier,
       imageUrl: identity.pictureUrl,
     });
   },
 });
+
+export const getCurrentUser = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Called getCurrentUser without authentication present");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) =>
+        q.eq("tokenIdentifier", identity.tokenIdentifier)
+      )
+      .first();
+
+    if(!user) {
+      throw new Error("User not found in database");
+    }
+
+    return user;
+  },
+});
+
+// export const searchUsers = query({
+//   args: { query: v.string() },
+//   handler: async (ctx, args) => {
+//     const currentUser = await ctx.runQuery(internal.users.getCurrentUser);
+
+//     // Don't search if query is too short
+//     if (args.query.length < 2) {
+//       return [];
+//     }
+
+//     // Search by name using search index
+//     const nameResults= await ctx.db
+//       .query("users")
+//       .withSearchIndex("search_name",(q)=>q.search("name", args.query))
+//       .collect();
+//   }
+// });
