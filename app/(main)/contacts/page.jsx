@@ -103,13 +103,13 @@ const ContactsPage = () => {
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
+            {/* <Button
               size="lg"
               className="h-11 px-5 bg-white text-[#a23bc3] ring-1 ring-[#b94bdb]/25 hover:bg-[#fff5ff] focus-visible:ring-[#b94bdb] dark:bg-white/10 dark:text-[#e2a5ef] dark:hover:bg-white/15"
             >
               <UserRoundPlus />
               Add Friend
-            </Button>
+            </Button> */}
             <Button
               size="lg"
               className="h-11 px-5 bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white hover:from-[#a941c5] hover:to-[#7058d5] focus-visible:ring-[#b94bdb]"
