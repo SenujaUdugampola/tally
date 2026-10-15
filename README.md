@@ -1,6 +1,6 @@
 # Tally — Smart Expense Sharing Platform
 
-Tally is a full-stack collaborative expense-sharing web application built with Next.js, Convex, and Clerk[cite: 1, 8]. Designed for friends, roommates, and family, Tally streamlines splitting shared costs, tracking one-to-one and group balances, and managing settlements in real time[cite: 1, 8].
+Tally is a full-stack collaborative expense-sharing web application built with Next.js, Convex, and Clerk. Designed for friends, roommates, and family, Tally streamlines splitting shared costs, tracking one-to-one and group balances, and managing settlements in real time.
 
 ---
 
@@ -18,12 +18,11 @@ Tally is a full-stack collaborative expense-sharing web application built with N
 ## Tech Stack
 
 - **Framework:** [Next.js 16](https://nextjs.org/) (App Router, Turbopack, React Compiler)
-- **Frontend Library:** [React 19](https://react.dev/)[cite: 1]
-- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/), Lucide Icons, `next-themes`
-- **Backend & Database:** [Convex](https://www.convex.dev/)[cite: 1]
-- **Authentication:** [Clerk](https://clerk.com/)[cite: 1]
-- **Background Jobs:** [Inngest](https://www.inngest.com/)[cite: 1]
-
+- **Frontend Library:** [React 19](https://react.dev/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/), Lucide Icons, `next-themes` , shadcn/ui
+- **Backend & Database:** [Convex](https://www.convex.dev/)
+- **Authentication:** [Clerk](https://clerk.com/)
+- **Background Jobs:** [Inngest](https://www.inngest.com/)
 ---
 
 ## Project Structure
@@ -33,20 +32,20 @@ tally/
 ├── app/
 │   ├── (auth)/             # Clerk sign-in & sign-up routes
 │   ├── (main)/
-│   │   ├── contacts/       # Contacts list & group creation modal[cite: 1]
-│   │   └── dashboard/      # Spending summaries & balance dashboard[cite: 1]
-│   ├── api/inngest/        # Inngest webhook route handlers[cite: 1]
-│   ├── layout.js           # Root layout with Clerk & Convex providers[cite: 1]
-│   └── page.js             # Landing page[cite: 1]
+│   │   ├── contacts/       # Contacts list & group creation modal
+│   │   └── dashboard/      # Spending summaries & balance dashboard
+│   ├── api/inngest/        # Inngest webhook route handlers
+│   ├── layout.js           # Root layout with Clerk & Convex providers
+│   └── page.js             # Landing page
 ├── components/
-│   ├── ui/                 # Reusable UI primitives (dialogs, buttons, inputs)[cite: 1]
-│   ├── ConvexClientProvider.jsx # Convex client integration with Clerk auth[cite: 1]
-│   └── header.jsx          # Global navigation and authentication controls[cite: 1]
+│   ├── ui/                 # Reusable UI primitives (dialogs, buttons, inputs)
+│   ├── ConvexClientProvider.jsx # Convex client integration with Clerk auth
+│   └── header.jsx          # Global navigation and authentication controls
 ├── convex/
-│   ├── auth.config.js      # Clerk JWT issuer configuration[cite: 1]
-│   ├── contacts.js         # Contacts and group management queries/mutations[cite: 1]
-│   ├── dashboard.js        # Spending aggregation and balance calculations[cite: 1]
-│   ├── schema.js           # Convex tables (users, groups, expenses, settlements)[cite: 1]
-│   └── users.js            # User synchronization mutations[cite: 1]
-├── hooks/                  # Custom hooks (e.g., useStoreUser, useConvexQuery)[cite: 1]
-└── lib/inngest/            # Background event handlers and scheduled functions[cite: 1]
+│   ├── auth.config.js      # Clerk JWT issuer configuration
+│   ├── contacts.js         # Contacts and group management queries/mutations
+│   ├── dashboard.js        # Spending aggregation and balance calculations
+│   ├── schema.js           # Convex tables (users, groups, expenses, settlements)
+│   └── users.js            # User synchronization mutations
+├── hooks/                  # Custom hooks (e.g., useStoreUser, useConvexQuery)
+└── lib/inngest/            # Background event handlers and scheduled functions
