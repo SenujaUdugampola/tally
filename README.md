@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Tally — Smart Expense Sharing Platform
 
-## Getting Started
+Tally is a full-stack collaborative expense-sharing web application built with Next.js, Convex, and Clerk[cite: 1, 8]. Designed for friends, roommates, and family, Tally streamlines splitting shared costs, tracking one-to-one and group balances, and managing settlements in real time[cite: 1, 8].
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Authentication & Synchronization:** Secure sign-in and sign-up flows powered by Clerk, automatically synced to Convex user profiles.
+- **Contacts & Group Management:** Discover contacts, create custom groups with role-based memberships (Admin/Member), and manage shared affiliations.
+- **Real-Time Data Backend:** High-performance, reactive document storage and indexed queries using Convex.
+- **Dynamic Split Calculations:** Support for splitting expenses equally, by exact amounts, or via percentages (in development).
+- **Dashboard & Spending Analytics:** Real-time visibility into balances, monthly/annual expenditure summaries, and debt settlement tracking (in development).
+- **Modern UI/UX:** Responsive interface built with Tailwind CSS v4 and shadcn-style component primitives.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router, Turbopack, React Compiler)
+- **Frontend Library:** [React 19](https://react.dev/)[cite: 1]
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/), Lucide Icons, `next-themes`
+- **Backend & Database:** [Convex](https://www.convex.dev/)[cite: 1]
+- **Authentication:** [Clerk](https://clerk.com/)[cite: 1]
+- **Background Jobs:** [Inngest](https://www.inngest.com/)[cite: 1]
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+tally/
+├── app/
+│   ├── (auth)/             # Clerk sign-in & sign-up routes
+│   ├── (main)/
+│   │   ├── contacts/       # Contacts list & group creation modal[cite: 1]
+│   │   └── dashboard/      # Spending summaries & balance dashboard[cite: 1]
+│   ├── api/inngest/        # Inngest webhook route handlers[cite: 1]
+│   ├── layout.js           # Root layout with Clerk & Convex providers[cite: 1]
+│   └── page.js             # Landing page[cite: 1]
+├── components/
+│   ├── ui/                 # Reusable UI primitives (dialogs, buttons, inputs)[cite: 1]
+│   ├── ConvexClientProvider.jsx # Convex client integration with Clerk auth[cite: 1]
+│   └── header.jsx          # Global navigation and authentication controls[cite: 1]
+├── convex/
+│   ├── auth.config.js      # Clerk JWT issuer configuration[cite: 1]
+│   ├── contacts.js         # Contacts and group management queries/mutations[cite: 1]
+│   ├── dashboard.js        # Spending aggregation and balance calculations[cite: 1]
+│   ├── schema.js           # Convex tables (users, groups, expenses, settlements)[cite: 1]
+│   └── users.js            # User synchronization mutations[cite: 1]
+├── hooks/                  # Custom hooks (e.g., useStoreUser, useConvexQuery)[cite: 1]
+└── lib/inngest/            # Background event handlers and scheduled functions[cite: 1]
