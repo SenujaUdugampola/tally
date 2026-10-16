@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header";
@@ -22,12 +23,14 @@ export default function RootLayout({ children }) {
       className={inter.className}>
       <head>
         <link rel="icon" href="/logos/logo-s.png" type="image/png" sizes="any" />
-
       </head>
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
           <ConvexClientProvider>
-            <Header />
+            
+            <Suspense fallback={<div className="h-16 w-full border-b bg-white/95" />}>
+              <Header />
+            </Suspense>
               
             <main className="min-h-screen">
              {children} 

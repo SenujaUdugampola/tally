@@ -22,7 +22,7 @@ export default function NotFound() {
         
         <div className="mt-10 flex justify-center">
           <Button
-            asChild
+            // asChild
             size="lg"
             className="h-12 bg-[#b94bdb]/80 px-8 text-base text-white shadow-lg shadow-[#b94bdb]/20 hover:bg-[#b94bdb]/90"
             render={<Link href="/" />}

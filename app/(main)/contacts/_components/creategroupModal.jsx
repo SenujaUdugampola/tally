@@ -94,8 +94,11 @@ const CreateGroupModal = ({isOpen, onClose, onSuccess}) => {
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:min-w-lg">
-          <DialogHeader>
-            <DialogTitle>Create New Group</DialogTitle>
+          <DialogHeader className="mt-2">
+            <DialogTitle>Create new group</DialogTitle>
+            <DialogDescription>
+              Make a private space to share expenses. Add at least one friend to <br /> get started.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
@@ -104,6 +107,7 @@ const CreateGroupModal = ({isOpen, onClose, onSuccess}) => {
                 id="name"
                 {...register('name')}
                 placeholder="Enter group name"
+                className='bg-[#F5F5F5]'
               />
               {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
             </div>
@@ -113,6 +117,7 @@ const CreateGroupModal = ({isOpen, onClose, onSuccess}) => {
                 id="description"
                 {...register('description')}
                 placeholder="Enter group description"
+                className='bg-[#F5F5F5]'
               />
             </div>
             <div className="space-y-2">
@@ -190,7 +195,7 @@ const CreateGroupModal = ({isOpen, onClose, onSuccess}) => {
                             </p>
                           )}
                         </CommandEmpty>
-                        <CommandGroup heading="Users">
+                        <CommandGroup>
                           {searchResults?.map((user) => (
                             <CommandItem 
                               key={user.id}

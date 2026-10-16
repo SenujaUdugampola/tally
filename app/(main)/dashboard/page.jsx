@@ -2,6 +2,14 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts"
 import { api } from "@/convex/_generated/api"
 import { useConvexQuery } from "@/hooks/useConvexQuery"
 import CreateGroupModal from "../contacts/_components/creategroupModal"
@@ -63,19 +71,45 @@ function SectionHeader({ title, description, href, linkLabel = "View all" }) {
   )
 }
 
-function BalanceCard({ title, amount, count, tone, icon: Icon }) {
+function BalanceCard({ title, amount, count, subtitle, tone, icon: Icon, prefix = "" }) {
+  const toneClasses = {
+    positive: "bg-emerald-500/10 text-emerald-600",
+    negative: "bg-rose-500/10 text-rose-600",
+    neutral: "bg-[#b94bdb]/10 text-[#a23bc3]",
+  }
+  const amountClasses = {
+    positive: "text-emerald-600 dark:text-emerald-400",
+    negative: "text-rose-600 dark:text-rose-400",
+    neutral: "text-[#a23bc3] dark:text-[#d58be8]",
+  }
+
   return (
     <div className="rounded-2xl border border-[#ead8ef] bg-[#fff8ff]/85 p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/10 dark:bg-white/5">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{title}</p>
-        <div className={`flex size-9 items-center justify-center rounded-xl ${tone === "positive" ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"}`}>
+        <div className={`flex size-9 items-center justify-center rounded-xl ${toneClasses[tone]}`}>
           <Icon className="size-4" />
         </div>
       </div>
-      <p className={`mt-3 text-2xl font-bold ${tone === "positive" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-        {formatMoney(amount)}
+      <p className={`mt-3 text-2xl font-bold ${amountClasses[tone]}`}>
+        {prefix}{formatMoney(amount)}
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">{count} {count === 1 ? "person" : "people"}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {subtitle ?? `${count} ${count === 1 ? "person" : "people"}`}
+      </p>
+    </div>
+  )
+}
+
+function SpendingTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+
+  return (
+    <div className="rounded-xl border border-[#ead8ef] bg-white/95 px-3 py-2 shadow-lg dark:border-white/10 dark:bg-[#241a2b]/95">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-[#a23bc3]">
+        {formatMoney(payload[0].value)}
+      </p>
     </div>
   )
 }
@@ -85,7 +119,15 @@ function SpendingSummary({ totalSpent, monthlySpending }) {
   const thisMonth = monthlySpending?.find(
     (item) => new Date(item.monthStart).getMonth() === now.getMonth()
   )?.total ?? 0
-  const maximum = Math.max(...(monthlySpending ?? []).map((item) => item.total), 1)
+  const chartData = (monthlySpending ?? []).map((item) => {
+    const month = new Date(item.monthStart)
+
+    return {
+      ...item,
+      label: month.toLocaleString("en-US", { month: "short" }),
+      fullLabel: month.toLocaleString("en-US", { month: "long" }),
+    }
+  })
 
   return (
     <section className="rounded-2xl border border-[#ead8ef] bg-[#fffaff]/90 p-5 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-white/5 sm:p-6">
@@ -100,23 +142,42 @@ function SpendingSummary({ totalSpent, monthlySpending }) {
           <p className="mt-2 text-xl font-bold">{formatMoney(totalSpent)}</p>
         </div>
       </div>
-      <div className="flex h-44 items-end gap-2 sm:gap-3">
-        {(monthlySpending ?? []).map((item) => {
-          const month = new Date(item.monthStart)
-          const height = item.total ? Math.max((item.total / maximum) * 100, 8) : 4
-          return (
-            <div key={item.monthStart} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
-              <div className="group relative flex h-full w-full items-end">
-                <div
-                  className={`w-full rounded-t-md transition-colors ${month.getMonth() === now.getMonth() ? "bg-gradient-to-t from-[#b94bdb] to-[#8068e8]" : "bg-[#b94bdb]/25 hover:bg-[#b94bdb]/50"}`}
-                  style={{ height: `${height}%` }}
-                  title={`${month.toLocaleString("en-US", { month: "long" })}: ${formatMoney(item.total)}`}
-                />
-              </div>
-              <span className="text-[10px] text-muted-foreground">{month.toLocaleString("en-US", { month: "short" }).slice(0, 3)}</span>
-            </div>
-          )
-        })}
+      <div className="h-52 w-full">
+        <BarChart
+          accessibilityLayer
+          data={chartData}
+          margin={{ top: 8, right: 4, left: 4, bottom: 0 }}
+          responsive
+          style={{ width: "100%", height: "100%" }}
+        >
+          <CartesianGrid stroke="#ead8ef" strokeDasharray="3 3" vertical={false} />
+          <XAxis
+            axisLine={false}
+            dataKey="label"
+            tick={{ fill: "currentColor", fontSize: 10 }}
+            tickLine={false}
+          />
+          <YAxis
+            axisLine={false}
+            domain={[0, "auto"]}
+            tick={{ fill: "#7b7280", fontSize: 10 }}
+            tickFormatter={(value) => value >= 1000 ? `$${(value / 1000).toFixed(value % 1000 ? 1 : 0)}k` : `$${value}`}
+            tickLine={false}
+            width={56}
+          />
+          <Tooltip
+            cursor={{ fill: "#b94bdb", fillOpacity: 0.08 }}
+            content={<SpendingTooltip />}
+            formatter={(value) => [formatMoney(value), "Total spending"]}
+            labelFormatter={(_, payload) => payload?.[0]?.payload?.fullLabel ?? ""}
+          />
+          <Bar
+            dataKey="total"
+            fill="#b94bdb"
+            activeBar={{ fill: "#8068e8" }}
+            radius={[8, 8, 0, 0]}
+          />
+        </BarChart>
       </div>
     </section>
   )
@@ -252,11 +313,14 @@ export default function DashboardPage() {
         </header>
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-[#eeebfa] bg-[#f9f8ff]/90 p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/10 dark:bg-white/5">
-            <div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">Total net balance</p><WalletCards className="size-4 text-[#a23bc3]" /></div>
-            <p className={`mt-3 text-2xl font-bold ${moneyClass(net)}`}>{net > 0 ? "+" : net < 0 ? "-" : ""}{formatMoney(net)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{net === 0 ? "You are all settled up" : net > 0 ? "You are owed overall" : "You owe overall"}</p>
-          </div>
+          <BalanceCard
+            title="Total net balance"
+            amount={net}
+            icon={WalletCards}
+            prefix={net > 0 ? "+" : net < 0 ? "-" : ""}
+            subtitle={net === 0 ? "You are all settled up" : net > 0 ? "You are owed overall" : "You owe overall"}
+            tone={net > 0 ? "positive" : net < 0 ? "negative" : "neutral"}
+          />
           <BalanceCard title="You are owed" amount={balance.data?.youAreOwed} count={balance.data?.ownDetails?.youAreOwed?.length ?? 0} tone="positive" icon={ArrowDownLeft} />
           <BalanceCard title="You owe" amount={balance.data?.youOwe} count={balance.data?.ownDetails?.youOwe?.length ?? 0} tone="negative" icon={ArrowUpRight} />
         </div>

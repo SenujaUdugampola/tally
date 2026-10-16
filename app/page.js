@@ -126,7 +126,7 @@ export default function Home() {
               <Button
                 size="lg"
                 className="h-12 bg-[#b94bdb] px-6 text-base text-white shadow-lg shadow-[#b94bdb]/30 hover:bg-[#b94bdb]/90"
-                asChild
+                // asChild
                 render={<Link href="/sign-up" />}
               >
                   Get Started
@@ -338,7 +338,7 @@ export default function Home() {
             <Button
               size="lg"
               className="mt-9 h-12 bg-[#b94bdb] px-6 text-base text-white shadow-lg shadow-[#b94bdb]/25 hover:bg-[#b94bdb]/80"
-              asChild
+              // asChild
               render={<Link href="/sign-up" />}
             >
               Get Started
