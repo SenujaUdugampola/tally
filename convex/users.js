@@ -50,7 +50,7 @@ export const getCurrentUser = query({
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
-      throw new Error("Called getCurrentUser without authentication present");
+      return null;
     }
 
     const user = await ctx.db

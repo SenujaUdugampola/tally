@@ -27,7 +27,7 @@ export const getUserBalance = query({
             if(isPayer) {
                 for(const s of e.splits) {
                     // skip user's own split or alraady paid ones
-                    if(s.userId !== user._id || s.paid) continue;
+                    if(s.userId === user._id || s.paid) continue;
 
                     youAreOwed += s.amount;
 
@@ -53,13 +53,13 @@ export const getUserBalance = query({
 
         for(const s of settlements) {
             if(s.paidByUserId === user._id) {
-                // user paid someone else - reduce what user pays
-                youAreOwed -= s.amount;
-                (balanceByUser[s.receivedByUserId] ??= { youOwe: 0, youAreOwed: 0 }).youAreOwed -= s.amount;
+                // user paid someone else - reduce what user owes
+                youOwe -= s.amount;
+                (balanceByUser[s.receivedByUserId] ??= { youOwe: 0, youAreOwed: 0 }).youOwe -= s.amount;
             } else {
                 // someone paid user - reduce what they owe user
                 youAreOwed -= s.amount;
-                (balanceByUser[s.paidByUserId] ??= { youOwe: 0, youAreOwed: 0 }).youOwe -= s.amount;
+                (balanceByUser[s.paidByUserId] ??= { youOwe: 0, youAreOwed: 0 }).youAreOwed -= s.amount;
             }
         }
 
@@ -102,7 +102,8 @@ export const getTotalSpent = query({
 
         const expenses = await ctx.db
             .query("expenses")
-            .withIndex("by_date", (q) => q.gte("date", startOfYear));
+            .withIndex("by_date", (q) => q.gte("date", startOfYear))
+            .collect();
 
         // Filter expenses to only include those where the user is involved
         const userExpenses = expenses.filter(
@@ -195,7 +196,7 @@ export const getUserGroups = query({
                 // get all expenses for this group
                 const expenses = await ctx.db
                     .query("expenses")
-                    .withIndex("by_groupId", (q) => q.eq("groupId", group._id))
+                    .withIndex("by_group", (q) => q.eq("groupId", group._id))
                     .collect();
                 
                 let balance = 0;
@@ -258,3 +259,73 @@ export const getUserGroups = query({
         return enhancedGroups;
     }
 })
+
+export const getRecentActivity = query({
+    handler: async (ctx) => {
+        const user = await ctx.runQuery(api.users.getCurrentUser);
+        const expenses = (await ctx.db.query("expenses").collect()).filter(
+            (expense) =>
+                expense.paidByUserId === user._id ||
+                expense.splits.some((split) => split.userId === user._id)
+        );
+        const settlements = (await ctx.db.query("settlements").collect()).filter(
+            (settlement) =>
+                settlement.paidByUserId === user._id ||
+                settlement.receivedByUserId === user._id
+        );
+
+        const userIds = new Set();
+        const groupIds = new Set();
+        expenses.forEach((expense) => {
+            userIds.add(expense.paidByUserId);
+            if (expense.groupId) groupIds.add(expense.groupId);
+        });
+        settlements.forEach((settlement) => {
+            userIds.add(settlement.paidByUserId);
+            userIds.add(settlement.receivedByUserId);
+            if (settlement.groupId) groupIds.add(settlement.groupId);
+        });
+
+        const [users, groups] = await Promise.all([
+            Promise.all([...userIds].map((id) => ctx.db.get(id))),
+            Promise.all([...groupIds].map((id) => ctx.db.get(id))),
+        ]);
+        const userById = new Map(users.filter(Boolean).map((item) => [item._id, item]));
+        const groupById = new Map(groups.filter(Boolean).map((item) => [item._id, item]));
+
+        const activity = expenses.map((expense) => {
+            const mySplit = expense.splits.find((split) => split.userId === user._id);
+            const amount = expense.paidByUserId === user._id
+                ? expense.splits
+                    .filter((split) => split.userId !== user._id && !split.paid)
+                    .reduce((total, split) => total + split.amount, 0)
+                : mySplit && !mySplit.paid ? mySplit.amount : 0;
+
+            return {
+                id: expense._id,
+                type: "expense",
+                date: expense.date,
+                description: expense.description,
+                category: expense.category ?? "Other",
+                splitType: expense.splitType,
+                paidBy: userById.get(expense.paidByUserId)?.name ?? "Unknown user",
+                groupName: expense.groupId ? groupById.get(expense.groupId)?.name : null,
+                amount: expense.paidByUserId === user._id ? amount : -amount,
+            };
+        });
+
+        activity.push(...settlements.map((settlement) => ({
+            id: settlement._id,
+            type: "settlement",
+            date: settlement.date,
+            note: settlement.note ?? "",
+            paidBy: userById.get(settlement.paidByUserId)?.name ?? "Unknown user",
+            receivedBy: userById.get(settlement.receivedByUserId)?.name ?? "Unknown user",
+            groupName: settlement.groupId ? groupById.get(settlement.groupId)?.name : null,
+            amount: settlement.amount,
+            direction: settlement.paidByUserId === user._id ? "paid" : "received",
+        })));
+
+        return activity.sort((a, b) => b.date - a.date).slice(0, 15);
+    },
+});

@@ -85,7 +85,7 @@ const ContactsPage = () => {
   }
 
   return (
-    <div className="relative min-h-[80vh] overflow-hidden px-4 sm:px-10 dark:from-[#21152a] dark:via-background dark:to-[#16152b]">
+    <div className="mb-16 relative min-h-[80vh] overflow-hidden px-4 sm:px-10 dark:from-[#21152a] dark:via-background dark:to-[#16152b]">
       <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full" />
       <div className="pointer-events-none absolute -bottom-32 -left-24 size-80 rounded-full" />
       <div className="container relative mx-auto">

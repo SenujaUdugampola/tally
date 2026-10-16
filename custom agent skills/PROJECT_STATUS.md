@@ -1,26 +1,26 @@
 # Tally Project Status
 
-**Assessment date:** 2026-10-13
+**Assessment date:** 2026-10-15
 **Repository:** `SenujaUdugampola/tally`  
 **Current branch:** `master`  
-**Current HEAD:** `556cb97` (`not found & routes user is not logged in`)
-**Working tree:** Contains uncommitted contacts, group, notification, and user-query work.
+**Current HEAD:** `bd72e98` (`dashboard api`)
+**Working tree:** Clean; all current work is committed.
 
 ## Executive summary
 
 Tally is an early-stage expense-sharing web application. The project has a working
 application foundation: Next.js App Router, Clerk authentication, Convex
 integration, a first-pass expense/group/settlement schema, shared UI primitives,
-and an Inngest route/function scaffold.
+contacts and group-management UI, initial dashboard data queries, and an Inngest
+route/function scaffold.
 
 The product is not feature-complete yet. The public home page is still a
-placeholder, the header still links to a dashboard route that is not present,
-and the Convex schema has no complete business API for expenses, groups, or
-settlements. A contacts route and initial contacts/group backend work are
-currently being developed, but the UI and mutations are incomplete. The last
-recorded production build also failed during prerendering because the global
-header uses runtime navigation/auth hooks without the required Suspense
-boundary.
+placeholder, the dashboard route is currently only a placeholder component, and
+the Convex schema still lacks complete expense and settlement workflows. Contacts
+and group creation are now wired through the UI and Convex, while dashboard
+queries exist for balances, spending, and groups. The current production build
+still fails during prerendering because the authentication/client provider path
+uses runtime navigation data without the required Suspense boundary.
 
 ## What the project is
 
@@ -59,11 +59,13 @@ family. The intended domain model supports:
   - Sign-in/sign-up controls for unauthenticated users.
   - User controls and a dashboard link for authenticated users.
   - A loading bar while the current user is synchronized.
+- [`app/(main)/dashboard/page.jsx`](./app/(main)/dashboard/page.jsx) defines the
+  authenticated dashboard route, but currently renders placeholder content.
 - [`hooks/useStoreUser.jsx`](./hooks/useStoreUser.jsx) calls the Convex
   `users.store` mutation after authentication.
 - [`app/(main)/contacts/page.jsx`](./app/(main)/contacts/page.jsx) is a client
-  route wired to the contacts query and loading state, but it does not yet
-  render the contact or group results.
+  route that renders contacts and groups, with loading, empty, and populated
+  states.
 
 ### Authentication
 
@@ -89,16 +91,21 @@ family. The intended domain model supports:
    related expense IDs, and creator.
 
 Indexes and search indexes are present for common user/group/date access patterns.
-The current uncommitted contacts work adds a contacts query and a group-creation
-mutation in [`convex/contacts.js`](./convex/contacts.js), but those functions
-still require completion and validation before they constitute a stable
-business API.
+[`convex/contacts.js`](./convex/contacts.js) provides the contacts/group query
+and group-creation mutation used by the contacts UI. The implementation is
+functional at the current prototype level but still needs authorization,
+pagination, and broader validation before it is production-ready.
 
 ### UI and event scaffolding
 
 - Reusable UI components are present in [`components/ui/`](./components/ui/).
 - The contacts route is being wired to Convex through
   [`hooks/useConvexQuery.jsx`](./hooks/useConvexQuery.jsx).
+- [`convex/dashboard.js`](./convex/dashboard.js) provides initial queries for
+  one-to-one balances, annual spending, monthly spending, and groups with
+  calculated balances.
+- The contacts page includes a create-group modal that searches users and
+  submits group membership through Convex.
 - `sonner` is mounted through the root layout for application notifications,
   but no completed contacts/group interaction currently uses it.
 - [`app/api/inngest/route.js`](./app/api/inngest/route.js) exposes Inngest
@@ -118,8 +125,10 @@ business API.
 - Convex client/provider integration.
 - Authenticated user persistence in Convex.
 - Initial expense-sharing schema and indexes.
-- Initial contacts query and group-creation backend scaffolding (in progress).
-- Contacts route data-loading scaffold (in progress).
+- Initial contacts query and group-creation backend/API flow.
+- Contacts route with rendered users/groups, empty states, loading state, and
+  create-group modal.
+- Initial dashboard balance/spending/group query API.
 - Inngest endpoint and example function scaffold.
 - A set of reusable form, layout, and interaction UI primitives.
 
@@ -127,16 +136,18 @@ business API.
 
 - The root page [`app/page.js`](./app/page.js) only renders placeholder “Sub”
   content and a destructive button.
-- No `app/dashboard` route exists, although the header links to `/dashboard`.
-- The contacts route currently renders an empty heading after loading and has no
-  usable contact/group presentation.
-- The contacts backend is incomplete: the group mutation references a
-  `members` argument that is not declared in its validator, and the user-search
-  query does not return its collected results.
+- The dashboard route exists, but currently renders only `DashboardPage`
+  placeholder content and is not connected to the dashboard queries.
+- Contacts and group creation work in the prototype UI, but the flow still lacks
+  invitation management, edit/delete operations, pagination, and comprehensive
+  authorization/error UX.
+- Dashboard query coverage is incomplete and needs validation against real
+  expense/settlement data before being treated as a stable business API.
 - No expense creation, editing, listing, deletion, or split-calculation UI.
 - No group creation, invitation, membership-management, or group view flow.
 - No settlement creation, balance calculation, or payment tracking flow.
-- No complete Convex queries/mutations for expenses, groups, or settlements.
+- No complete Convex queries/mutations for expenses or settlements; group
+  creation/query support is only partially complete.
 - No visible landing-page features/how-it-works sections matching the header
   anchors.
 - No automated application tests are present in the project inventory.
@@ -160,12 +171,12 @@ Command: `npm run build`
 
 Result: **Fails during prerendering.**
 
-The failure was recorded on `/sign-up/[[...sign-up]]`. Next.js reports that runtime
-URL data from `usePathname()` is reached through the client header outside a
-Suspense boundary. The relevant path is:
+The current failure is on `/sign-in/[[...sign-in]]`. Next.js reports that runtime
+URL data from `usePathname()` is reached through the client authentication/provider
+path outside a Suspense boundary. The relevant path is:
 
-`app/(auth)/sign-up/[[...sign-up]]/page.jsx` → root layout → `Header` →
-`useStoreUser`/client navigation context.
+`app/(auth)/sign-in/[[...sign-in]]/page.jsx` → root layout →
+`ConvexClientProvider` → `useStoreUser`/client navigation context.
 
 The build also reports that the `middleware` convention is deprecated and should
 eventually migrate to `proxy`, but that warning is not the build-stopping error.
@@ -196,23 +207,21 @@ behavior, then rerun `npm run build`. Keep the auth routes and global header
 behavior intact while ensuring runtime navigation hooks are rendered beneath the
 appropriate boundary.
 
-### Priority 2: establish the first usable product flow
+### Priority 2: turn the dashboard API into a usable product flow
 
-Implement a protected dashboard route and the minimum end-to-end flow:
+Replace the dashboard placeholder with a protected, query-backed experience:
 
-1. Create an expense.
-2. Select participants and calculate equal/exact/percentage splits.
-3. Persist and list expenses through Convex.
-4. Display balances and record a settlement.
+1. Display one-to-one balances and spending summaries.
+2. Create an expense.
+3. Select participants and calculate equal/exact/percentage splits.
+4. Persist and list expenses through Convex.
+5. Display group balances and record a settlement.
 
 ### Priority 3: finish contacts and group scaffolding
 
-- Complete the `searchUsers` query and return bounded, authorization-safe
-  results.
-- Add the missing `members` validator/argument to group creation, or remove
-  member selection until the UI supports it.
-- Render contacts and groups in the contacts route and wire the group modal and
-  notifications.
+- Add bounded/paginated, authorization-safe user search.
+- Add group invitation, editing, membership-management, and group detail flows.
+- Improve mutation error handling and success feedback in the group modal.
 - Validate the new Convex functions and regenerate/check generated API output as
   part of the normal Convex workflow.
 
@@ -235,9 +244,9 @@ ownership/membership checks before reading or writing group-scoped data.
 
 ## Overall status
 
-**Foundation:** Partially complete; contacts/group work is in progress
+**Foundation:** Partially complete; contacts/groups and dashboard API are wired
 **Authentication:** Wired, pending production-build fix  
-**Data model:** Initial schema complete; contacts API partial and core business API absent
-**Frontend product experience:** Prototype/placeholder; contacts route scaffolded
+**Data model:** Initial schema complete; contacts/groups API partial and expense/settlement API absent
+**Frontend product experience:** Prototype; contacts route usable, dashboard placeholder
 **Background processing:** Scaffold only  
 **Production readiness:** Not ready
