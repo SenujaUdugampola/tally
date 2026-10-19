@@ -6,6 +6,8 @@ import { api } from "@/convex/_generated/api"
 import { useConvexMutation, useConvexQuery } from "@/hooks/useConvexQuery"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import ExpenseList from "@/components/expenseList"
+import SettlementList from "@/components/settlementList"
 import {
   ArrowLeft,
   ArrowDownLeft,
@@ -15,10 +17,9 @@ import {
   LoaderCircle,
   Plus,
   Receipt,
-  Trash2,
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getCategoryById, getCategoryIcon } from "@/lib/expense-categories"
+import { useRouter } from "next/navigation"
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -26,12 +27,6 @@ const currency = new Intl.NumberFormat("en-US", {
 })
 
 const formatMoney = (amount) => currency.format(Math.abs(amount ?? 0))
-const formatDate = (date) =>
-  new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date))
 const initials = (name = "") =>
   name
     .split(" ")
@@ -62,110 +57,8 @@ function EmptyState({ friendId }) {
   )
 }
 
-function ExpenseCard({ expense, friend, currentUser, onDelete, deleting }) {
-  const currentSplit = expense.splits.find(
-    (split) => split.userId === currentUser.id
-  )
-  const friendSplit = expense.splits.find(
-    (split) => split.userId === friend.id
-  )
-  const currentUserPaid = expense.paidByUserId === currentUser.id
-  const sharedAmount = currentUserPaid
-    ? friendSplit?.amount ?? 0
-    : currentSplit?.amount ?? 0
-  const lent = currentUserPaid
-
-  const category = getCategoryById(expense.category)
-  const CategoryIcon = getCategoryIcon(category.id);
-
-  return (
-    <div className="rounded-2xl border border-[#ead8ef] p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-white/[.03]">
-      <div className="flex items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#b94bdb]/10 text-[#a23bc3]">
-          {/* category icon */}
-          <CategoryIcon className="size-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{expense.description}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{formatDate(expense.date)}</p>
-            </div>
-            {expense.createdBy === currentUser.id && (
-              <Button
-                aria-label={`Delete ${expense.description}`}
-                disabled={deleting}
-                onClick={() => onDelete(expense._id)}
-                size="icon-xs"
-                variant="ghost"
-                className="text-muted-foreground hover:text-rose-600"
-              >
-                <Trash2 />
-              </Button>
-            )}
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl p-3 dark:bg-white/[.04]">
-            <div className="">
-              <p className="text-xs text-muted-foreground">
-                {currentUserPaid ? "You" : friend.name} paid
-              </p>
-              <p className={`mt-1 text-sm font-medium`}>
-                Total: {formatMoney(expense.amount)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Your share</p>
-              <p className={`mt-1 text-sm font-semibold ${lent ? "text-emerald-600" : "text-rose-600"}`}>
-                {lent ? formatMoney(sharedAmount) : formatMoney(sharedAmount)}
-                {/* {formatMoney(currentSplit?.amount ?? 0)} */}
-              </p>
-              {/* <p className={`text-xs font-medium ${lent ? "text-emerald-600" : "text-rose-600"}`}>
-                {lent ? `You lent ${formatMoney(sharedAmount)}` : `You owe ${formatMoney(sharedAmount)}`}
-              </p> */}
-            </div>
-          </div>
-          {/* {(expense.category || expense.splitType) && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              {[expense.category, expense.splitType && `${expense.splitType} split`].filter(Boolean).join(" · ")}
-            </p>
-          )} */}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function SettlementCard({ settlement, friend, currentUser }) {
-  const youPaid = settlement.paidByUserId === currentUser.id
-
-  return (
-    <div className="flex items-start gap-3 rounded-2xl border border-sky-200/70 bg-sky-50/50 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-sky-400/20 dark:bg-sky-400/[.05]">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600">
-        <HandCoins className="size-4" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold">
-              {youPaid ? `You paid ${friend.name}` : `${friend.name} paid you`}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">{formatDate(settlement.date)}</p>
-          </div>
-          <span className={`shrink-0 text-sm font-semibold ${youPaid ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
-            {youPaid ? "-" : "+"}{formatMoney(settlement.amount)}
-          </span>
-        </div>
-        {settlement.note && (
-          <p className="mt-3 rounded-lg px-3 py-2 text-xs text-muted-foreground dark:bg-white/[.04]">
-            {settlement.note}
-          </p>
-        )}
-      </div>
-    </div>
-  )
-}
-
 export default function PersonPage({ params }) {
+  const router = useRouter();
   const { id } = use(params)
   const { data, loading } = useConvexQuery(
     api.expenses.getExpensesBetweenUsers,
@@ -197,12 +90,12 @@ export default function PersonPage({ params }) {
       <div className="relative mx-auto max-w-6xl">
         <div className="mb-6">
           <Button
-            render={<Link href="/contacts" />}
+            onClick={() => router.back()}
             variant="ghost"
             className="pl-0 text-muted-foreground hover:bg-transparent hover:text-[#a23bc3]"
           >
             <ArrowLeft />
-            Back to contacts
+            Back
           </Button>
         </div>
 
@@ -224,7 +117,7 @@ export default function PersonPage({ params }) {
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               render={<Link href={`/expenses/new?friend=${friend.id}`} />}
-              className="bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white"
+              className="h-11 bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white"
             >
               <Plus />
               Add expense
@@ -232,7 +125,7 @@ export default function PersonPage({ params }) {
             <Button
               render={<Link href={`/settlements/new?friend=${friend.id}`} />}
               variant="outline"
-              className="border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"
+              className="h-11 border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"
             >
               <CreditCard />
               Settle up
@@ -245,13 +138,12 @@ export default function PersonPage({ params }) {
             <div>
               <p className="text-sm text-muted-foreground">Net balance</p>
               <p
-                className={`mt-2 text-3xl font-bold ${
-                  balance > 0
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : balance < 0
-                      ? "text-rose-600 dark:text-rose-400"
-                      : "text-muted-foreground"
-                }`}
+                className={`mt-2 text-3xl font-bold ${balance > 0
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : balance < 0
+                    ? "text-rose-600 dark:text-rose-400"
+                    : "text-muted-foreground"
+                  }`}
               >
                 {balance > 0 ? "+" : balance < 0 ? "-" : ""}
                 {formatMoney(balance)}
@@ -268,11 +160,11 @@ export default function PersonPage({ params }) {
           <TabsList variant="line">
             <TabsTrigger value="expenses" className="px-8 py-2">
               <Receipt className="mr-2 size-4" />
-              Expenses
+              Expenses ({expenses.length})
             </TabsTrigger>
             <TabsTrigger value="settlements" className="px-8 py-2">
               <HandCoins className="mr-2 size-4" />
-              Settlements
+              Settlements ({settlements.length})
             </TabsTrigger>
           </TabsList>
 
@@ -286,14 +178,14 @@ export default function PersonPage({ params }) {
                       Shared expenses between you and {friend.name}.
                     </p>
                   </div>
-                  <span className="text-xs text-muted-foreground">{expenses.length} total</span>
+                  {/* <span className="text-xs text-muted-foreground">{expenses.length} total</span> */}
                 </div>
                 {!expenses.length ? (
                   <EmptyState friendId={friend.id} />
                 ) : (
                   <div className="space-y-3">
                     {[...expenses].sort((a, b) => b.date - a.date).map((expense) => (
-                      <ExpenseCard
+                      <ExpenseList
                         key={expense._id}
                         expense={expense}
                         friend={friend}
@@ -315,7 +207,7 @@ export default function PersonPage({ params }) {
                       Payments recorded between you and {friend.name}.
                     </p>
                   </div>
-                  <span className="text-xs text-muted-foreground">{settlements.length} total</span>
+                  {/* <span className="text-xs text-muted-foreground">{settlements.length} total</span> */}
                 </div>
                 {!settlements.length ? (
                   <div className="rounded-2xl border border-dashed border-sky-300/50 px-6 py-10 text-center dark:border-sky-400/20">
@@ -326,7 +218,7 @@ export default function PersonPage({ params }) {
                 ) : (
                   <div className="space-y-3">
                     {[...settlements].sort((a, b) => b.date - a.date).map((settlement) => (
-                      <SettlementCard
+                      <SettlementList
                         key={settlement._id}
                         settlement={settlement}
                         friend={friend}

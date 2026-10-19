@@ -81,9 +81,9 @@ export const getExpensesBetweenUsers = query({
 
         for (const settlement of settlements) {
             if (settlement.paidByUserId === me._id) {
-                balance -= settlement.amount; // I paid the friend
+                balance += settlement.amount; // I paid the friend
             } else {
-                balance += settlement.amount; // the friend paid me
+                balance -= settlement.amount; // the friend paid me
             }
         }
 

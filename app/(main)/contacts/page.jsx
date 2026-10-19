@@ -141,6 +141,9 @@ const ContactsPage = () => {
                 {users.map((user, index) => (
                   <Card
                     key={user.id}
+                    onClick={() => router.push(`/person/${user.id}`)}
+                    role="link"
+                    tabIndex={0}
                     className="group overflow-hidden border border-[#ead8ef] bg-white/75 transition-colors hover:border-[#b94bdb]/50 hover:bg-[#fff8ff] dark:border-white/10 dark:bg-white/5 dark:hover:border-[#b94bdb]/50 dark:hover:bg-white/10"
                   >
                     <div className={`h-1 w-full ${index % 2 === 0 ? "bg-gradient-to-r from-[#b94bdb] to-[#f0a5e8]" : "bg-gradient-to-r from-[#6475e8] to-[#a99af5]"}`} />
@@ -172,6 +175,9 @@ const ContactsPage = () => {
                 {groups.map((group, index) => (
                   <Card
                     key={group.id}
+                    onClick={() => router.push(`/groups/${group.id}`)}
+                    role="link"
+                    tabIndex={0}
                     className="group overflow-hidden border border-[#dfe0f5] bg-white/75 transition-colors hover:border-[#8068e8]/55 hover:bg-[#f8f7ff] dark:border-white/10 dark:bg-white/5 dark:hover:border-[#8068e8]/55 dark:hover:bg-white/10"
                   >
                     <div className={`h-1 w-full ${index % 2 === 0 ? "bg-gradient-to-r from-[#e177d8] to-[#b94bdb]" : "bg-gradient-to-r from-[#9a72e8] to-[#6475e8]"}`} />
