@@ -1,26 +1,27 @@
 # Tally Project Status
 
-**Assessment date:** 2026-10-15
+**Assessment date:** 2026-10-18
 **Repository:** `SenujaUdugampola/tally`  
 **Current branch:** `master`  
-**Current HEAD:** `bd72e98` (`dashboard api`)
-**Working tree:** Clean; all current work is committed.
+**Current HEAD:** `34ad6a0` (`expenses & groups api`)
+**Working tree:** This status document has uncommitted updates; no other changes
+were detected.
 
 ## Executive summary
 
 Tally is an early-stage expense-sharing web application. The project has a working
 application foundation: Next.js App Router, Clerk authentication, Convex
 integration, a first-pass expense/group/settlement schema, shared UI primitives,
-contacts and group-management UI, initial dashboard data queries, and an Inngest
-route/function scaffold.
+contacts and group-management UI, a query-backed dashboard with spending and
+balance views, one-to-one expense queries/deletion, group expense aggregation,
+and an Inngest route/function scaffold.
 
-The product is not feature-complete yet. The public home page is still a
-placeholder, the dashboard route is currently only a placeholder component, and
-the Convex schema still lacks complete expense and settlement workflows. Contacts
-and group creation are now wired through the UI and Convex, while dashboard
-queries exist for balances, spending, and groups. The current production build
-still fails during prerendering because the authentication/client provider path
-uses runtime navigation data without the required Suspense boundary.
+The product is not feature-complete yet. The public home page remains a
+placeholder, expense and settlement creation flows are not implemented, and the
+dynamic group/person pages are empty. The newest Convex expense/group functions
+are not yet covered by tests or a completed end-to-end UI flow. The current
+production build fails because the empty `/groups/[id]` route is not a React
+component.
 
 ## What the project is
 
@@ -60,7 +61,9 @@ family. The intended domain model supports:
   - User controls and a dashboard link for authenticated users.
   - A loading bar while the current user is synchronized.
 - [`app/(main)/dashboard/page.jsx`](./app/(main)/dashboard/page.jsx) defines the
-  authenticated dashboard route, but currently renders placeholder content.
+  authenticated dashboard route and renders balance cards, spending summaries,
+  a monthly chart, groups, recent activity, and quick actions. The quick actions
+  currently target routes whose creation pages do not yet exist.
 - [`hooks/useStoreUser.jsx`](./hooks/useStoreUser.jsx) calls the Convex
   `users.store` mutation after authentication.
 - [`app/(main)/contacts/page.jsx`](./app/(main)/contacts/page.jsx) is a client
@@ -102,8 +105,13 @@ pagination, and broader validation before it is production-ready.
 - The contacts route is being wired to Convex through
   [`hooks/useConvexQuery.jsx`](./hooks/useConvexQuery.jsx).
 - [`convex/dashboard.js`](./convex/dashboard.js) provides initial queries for
-  one-to-one balances, annual spending, monthly spending, and groups with
-  calculated balances.
+  one-to-one balances, annual spending, monthly spending, groups with calculated
+  balances, and recent activity.
+- [`convex/expenses.js`](./convex/expenses.js) provides a one-to-one expense and
+  settlement lookup plus an authorization check for deleting an expense.
+- [`convex/groups.js`](./convex/groups.js) contains a group expense,
+  settlement, member, and balance aggregation query, but this implementation has
+  not yet been validated end-to-end.
 - The contacts page includes a create-group modal that searches users and
   submits group membership through Convex.
 - `sonner` is mounted through the root layout for application notifications,
@@ -128,7 +136,11 @@ pagination, and broader validation before it is production-ready.
 - Initial contacts query and group-creation backend/API flow.
 - Contacts route with rendered users/groups, empty states, loading state, and
   create-group modal.
-- Initial dashboard balance/spending/group query API.
+- Dashboard balance/spending/group/recent-activity query API.
+- Dashboard route with balance cards, spending chart, group summaries, recent
+  activity, and quick-action controls.
+- Initial one-to-one expense lookup and expense deletion mutation.
+- Initial group expense/settlement/member/balance aggregation query.
 - Inngest endpoint and example function scaffold.
 - A set of reusable form, layout, and interaction UI primitives.
 
@@ -136,18 +148,21 @@ pagination, and broader validation before it is production-ready.
 
 - The root page [`app/page.js`](./app/page.js) only renders placeholder “Sub”
   content and a destructive button.
-- The dashboard route exists, but currently renders only `DashboardPage`
-  placeholder content and is not connected to the dashboard queries.
+- The dashboard reads live Convex queries, but expense and settlement creation
+  actions currently link to routes that are not implemented.
 - Contacts and group creation work in the prototype UI, but the flow still lacks
   invitation management, edit/delete operations, pagination, and comprehensive
   authorization/error UX.
-- Dashboard query coverage is incomplete and needs validation against real
-  expense/settlement data before being treated as a stable business API.
-- No expense creation, editing, listing, deletion, or split-calculation UI.
-- No group creation, invitation, membership-management, or group view flow.
-- No settlement creation, balance calculation, or payment tracking flow.
-- No complete Convex queries/mutations for expenses or settlements; group
-  creation/query support is only partially complete.
+- Dashboard and group balance calculations need validation against representative
+  expense/settlement data before being treated as stable business APIs.
+- No expense creation, editing, listing, or split-calculation UI; deletion is
+  currently the only expense mutation.
+- No settlement creation, listing, or payment-tracking UI.
+- No group invitation, membership-management, or group detail flow. The
+  `/groups/[id]` and `/person/[id]` page files are currently empty.
+- No settlement creation or payment tracking flow.
+- Convex expense/group functions are partial and need validator, authorization,
+  pagination, and correctness work before production use.
 - No visible landing-page features/how-it-works sections matching the header
   anchors.
 - No automated application tests are present in the project inventory.
@@ -171,15 +186,12 @@ Command: `npm run build`
 
 Result: **Fails during prerendering.**
 
-The current failure is on `/sign-in/[[...sign-in]]`. Next.js reports that runtime
-URL data from `usePathname()` is reached through the client authentication/provider
-path outside a Suspense boundary. The relevant path is:
-
-`app/(auth)/sign-in/[[...sign-in]]/page.jsx` → root layout →
-`ConvexClientProvider` → `useStoreUser`/client navigation context.
-
-The build also reports that the `middleware` convention is deprecated and should
-eventually migrate to `proxy`, but that warning is not the build-stopping error.
+The current build-stopping error is the dynamic route
+`app/(main)/groups/[id]/page.jsx`: Next.js reports that its default export is
+not a React component because the file is empty. The build also reports that the
+`middleware` convention is deprecated and should eventually migrate to `proxy`.
+The previously observed authentication/provider Suspense failure was not reached
+in this run because prerendering stopped at the empty group route first.
 
 ## Environment requirements
 
@@ -202,16 +214,15 @@ environment; they should not be committed.
 
 ### Priority 1: restore a passing production build
 
-Resolve the Suspense boundary issue around the client-only header/navigation
-behavior, then rerun `npm run build`. Keep the auth routes and global header
-behavior intact while ensuring runtime navigation hooks are rendered beneath the
-appropriate boundary.
+Implement the `/groups/[id]` page (and verify `/person/[id]`), then rerun
+`npm run build`. Address any subsequent auth/provider Suspense issue and
+eventually migrate the deprecated `middleware` convention to `proxy`.
 
-### Priority 2: turn the dashboard API into a usable product flow
+### Priority 2: turn the dashboard into a complete product flow
 
-Replace the dashboard placeholder with a protected, query-backed experience:
+Extend the existing query-backed dashboard with:
 
-1. Display one-to-one balances and spending summaries.
+1. Verify balance and spending calculations with representative data.
 2. Create an expense.
 3. Select participants and calculate equal/exact/percentage splits.
 4. Persist and list expenses through Convex.
@@ -227,9 +238,11 @@ Replace the dashboard placeholder with a protected, query-backed experience:
 
 ### Priority 4: complete backend behavior
 
-Add validated Convex queries and mutations for expenses, groups, and settlements.
+Complete and validate Convex queries and mutations for expenses, groups, and settlements.
 Every function should derive the current user from Convex auth and enforce
 ownership/membership checks before reading or writing group-scoped data.
+Review the new expense/group aggregation logic for runtime correctness and add
+focused tests before exposing it as a stable API.
 
 ### Priority 5: product readiness
 
@@ -244,9 +257,9 @@ ownership/membership checks before reading or writing group-scoped data.
 
 ## Overall status
 
-**Foundation:** Partially complete; contacts/groups and dashboard API are wired
-**Authentication:** Wired, pending production-build fix  
-**Data model:** Initial schema complete; contacts/groups API partial and expense/settlement API absent
-**Frontend product experience:** Prototype; contacts route usable, dashboard placeholder
+**Foundation:** Partially complete; contacts/groups and dashboard UI/API are wired
+**Authentication:** Wired; production build currently blocked by empty group route
+**Data model:** Initial schema complete; contacts/groups and partial expense API present
+**Frontend product experience:** Prototype; contacts and dashboard routes usable, group/person and creation flows incomplete
 **Background processing:** Scaffold only  
 **Production readiness:** Not ready

@@ -7,7 +7,8 @@ export const getExpensesBetweenUsers = query({
     args: {userId: v.id("users")},
     handler: async (ctx, { userId }) => {
         const me = await ctx.runQuery(api.users.getCurrentUser);
-        if(me.id === userId) throw new Error("Cannot get expenses for yourself");
+        if (!me) return null;
+        if(me._id === userId) throw new Error("Cannot get expenses for yourself");
         
         // one on one expenses
         const myPaid = await ctx.db
@@ -80,9 +81,9 @@ export const getExpensesBetweenUsers = query({
 
         for (const settlement of settlements) {
             if (settlement.paidByUserId === me._id) {
-                balance += settlement.amount; // I paid back
+                balance -= settlement.amount; // I paid the friend
             } else {
-                balance -= settlement.amount; // they paid back
+                balance += settlement.amount; // the friend paid me
             }
         }
 
@@ -99,6 +100,11 @@ export const getExpensesBetweenUsers = query({
                 name: other.name,
                 email: other.email,
                 imageUrl: other.imageUrl,
+            },
+            currentUser: {
+                id: me._id,
+                name: me.name,
+                imageUrl: me.imageUrl,
             },
         };
 

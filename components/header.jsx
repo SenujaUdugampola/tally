@@ -24,7 +24,8 @@ const Header = () => {
             alt="tally. Logo" 
             width={400} 
             height={60} 
-            className="h-11 w-auto object-contain pl-"
+            className="h-11 w-auto object-contain pl-0"
+            priority
           />
         </Link>
 
