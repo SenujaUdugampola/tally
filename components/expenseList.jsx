@@ -29,7 +29,7 @@ export default function ExpenseList({ expense, friend, currentUser, onDelete, de
     const categoryIcon = getCategoryIcon(category.id)
 
     return (
-        <div className="rounded-2xl border border-[#ead8ef] p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-white/[.03]">
+        <div className="rounded-2xl border border-[#ead8ef] bg-[#fffaff]/90 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-white/[.03]">
             <div className="flex items-start gap-3">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#b94bdb]/10 text-[#a23bc3]">
                     {createElement(categoryIcon, { className: "size-4" })}
@@ -44,7 +44,9 @@ export default function ExpenseList({ expense, friend, currentUser, onDelete, de
                             <Button
                                 aria-label={`Delete ${expense.description}`}
                                 disabled={deleting}
-                                onClick={() => onDelete(expense._id)}
+                                onClick={async () => {
+                                  await onDelete(expense._id)
+                                }}
                                 size="icon-xs"
                                 variant="ghost"
                                 className="text-muted-foreground hover:text-rose-600"

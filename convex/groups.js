@@ -10,7 +10,7 @@ export const getGroupExpenses = query({
         const group = await ctx.db.get(groupId);
         if (!group) throw new Error("Group not found");
 
-        if (!group.members.includes.some((member) => member.userId === currentUser._id)) {
+        if (!group.members.some((member) => member.userId === currentUser._id)) {
             throw new Error("You are not a member of this group");
         }
         
@@ -58,11 +58,11 @@ export const getGroupExpenses = query({
 
         //apply expenses to balances
         for (const expense of expenses) {
-            const payer = expense.payerId;
+            const payer = expense.paidByUserId;
 
             for(const split of expense.splits) {
                 //skip if own split
-                if (split.userId === payer || split.paid) continue;
+                if (split.userId === payer || split.paid ) continue;
 
                 const debtor = split.userId;
                 const amount = split.amount;
@@ -88,8 +88,8 @@ export const getGroupExpenses = query({
         const balances = memberDetails.map((member) => ({
             ...member,
             totalBalance: totals[member.id],
-            owes: Object.entries(ledger[member.id]
-                .filter(([, value]) => value > 0))
+            owes: Object.entries(ledger[member.id])
+                .filter(([, value]) => value > 0)
                 .map((to, amount) => ({ to, amount })),
             owedBy: ids
                 .filter((other) => ledger[other][member.id] > 0)
