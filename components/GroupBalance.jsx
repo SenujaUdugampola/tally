@@ -12,7 +12,7 @@ function BalancePerson({ member, amount, direction }) {
   const owedToYou = direction === "owed"
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-black/[.03] dark:hover:bg-white/[.04]">
       <Avatar className="size-10">
         <AvatarImage src={member.imageUrl ?? undefined} alt={member.name} />
         <AvatarFallback>{initials(member.name)}</AvatarFallback>
@@ -28,6 +28,7 @@ function BalancePerson({ member, amount, direction }) {
 export default function GroupBalance({ userNetBalance, totalSpending, balances = [] }) {
   const owedToYou = balances.filter((member) => member.owedToYou > 0)
   const youOwe = balances.filter((member) => member.youOwe > 0)
+  const hasPairwiseBalances = owedToYou.length > 0 || youOwe.length > 0
 
   return (
     <section className="rounded-2xl border border-[#ead8ef] bg-[#fff8ff]/85 p-5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-6">
@@ -47,27 +48,41 @@ export default function GroupBalance({ userNetBalance, totalSpending, balances =
         <p className="mt-1 text-xl font-semibold">{formatMoney(totalSpending)}</p>
       </div>
       <div className="mt-6 border-t border-border/60 pt-5">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-          <ArrowDownLeft className="size-4" />
-          <span>Owed to you</span>
-        </div>
-        <div className="mt-4 space-y-4">
-          {owedToYou.length ? owedToYou.map((member) => (
-            <BalancePerson key={member.id} member={member} amount={member.owedToYou} direction="owed" />
-          )) : <p className="text-sm text-muted-foreground">No one currently owes you.</p>}
-        </div>
+        {!hasPairwiseBalances ? (
+          <p className="py-2 text-center text-sm text-muted-foreground">All settled up with everyone in this group.</p>
+        ) : (
+          <>
+            {owedToYou.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                  <ArrowDownLeft className="size-4" />
+                  <span>Owed to you</span>
+                </div>
+                <div className="mt-4 space-y-4">
+                  {owedToYou.map((member) => (
+                    <BalancePerson key={member.id} member={member} amount={member.owedToYou} direction="owed" />
+                  ))}
+                </div>
+              </>
+            )}
 
-        <div className="my-5 border-t border-border/60" />
+            {owedToYou.length > 0 && youOwe.length > 0 && <div className="my-5 border-t border-border/60" />}
 
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">
-          <ArrowUpRight className="size-4" />
-          <span>You owe</span>
-        </div>
-        <div className="mt-4 space-y-4">
-          {youOwe.length ? youOwe.map((member) => (
-            <BalancePerson key={member.id} member={member} amount={member.youOwe} direction="owe" />
-          )) : <p className="text-sm text-muted-foreground">You do not owe anyone.</p>}
-        </div>
+            {youOwe.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">
+                  <ArrowUpRight className="size-4" />
+                  <span>You owe</span>
+                </div>
+                <div className="mt-4 space-y-4">
+                  {youOwe.map((member) => (
+                    <BalancePerson key={member.id} member={member} amount={member.youOwe} direction="owe" />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     </section>
   )

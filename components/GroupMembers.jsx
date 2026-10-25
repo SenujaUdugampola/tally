@@ -12,19 +12,19 @@ const initials = (name = "") =>
 
 export default function GroupMembers({ groupId, members }) {
   return (
-    <section className="rounded-2xl border border-[#ead8ef] bg-white/75 p-5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-6">
+    <section className="rounded-2xl border border-sky-200/70 bg-sky-50/50 p-5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold tracking-tight">Members</h2>
-          <span className="rounded-full bg-[#b94bdb]/10 px-2 py-0.5 text-xs font-medium text-[#a23bc3]">{members.length}</span>
+          <span className="rounded-full px-2 py-0.5 text-xs font-medium bg-sky-500/10 text-sky-600">{members.length}</span>
         </div>
-        <Button render={<Link href={`/contacts?group=${groupId}`} />} size="icon-sm" variant="ghost" aria-label="Add member" className="text-[#a23bc3] hover:bg-[#b94bdb]/10">
+        <Button render={<Link href={`/contacts?group=${groupId}`} />} size="icon-sm" variant="ghost" aria-label="Add member" className="text-sky-600">
           <UserPlus />
         </Button>
       </div>
       <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {members.map((member) => (
-          <div key={member.id} className="rounded-xl px-2 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:bg-black/[.03] hover:shadow-sm dark:hover:bg-white/[.04]">
+          <div key={member.id} className="rounded-xl px-2 py-2 transition-all duration-200 hover:bg-black/[.03] dark:hover:bg-white/[.04]">
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarImage src={member.imageUrl ?? undefined} alt={member.name} />

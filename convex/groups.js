@@ -77,12 +77,28 @@ export const getGroupExpenses = query({
 
         //apply settlements to balances
         for (const settlement of settlements) {
-            totals[settlement.paidByUserId] -= settlement.amount;
-            totals[settlement.receivedByUserId] += settlement.amount;
+            totals[settlement.paidByUserId] += settlement.amount;
+            totals[settlement.receivedByUserId] -= settlement.amount;
 
             //update ledger
             ledger[settlement.paidByUserId][settlement.receivedByUserId] -= settlement.amount;
         }
+
+        ids.forEach((a) => {
+            ids.forEach((b) => {
+                if (a >= b) return; // visit each unordered pair once
+                const diff = ledger[a][b] - ledger[b][a];
+                if (diff > 0) {
+                    ledger[a][b] = diff;
+                    ledger[b][a] = 0;
+                } else if (diff < 0) {
+                    ledger[b][a] = -diff;
+                    ledger[a][b] = 0;
+                } else {
+                    ledger[a][b] = ledger[b][a] = 0;
+                }
+            });
+        });
 
         //format response data
         const balances = memberDetails.map((member) => ({
@@ -90,7 +106,7 @@ export const getGroupExpenses = query({
             totalBalance: totals[member.id],
             owes: Object.entries(ledger[member.id])
                 .filter(([, value]) => value > 0)
-                .map((to, amount) => ({ to, amount })),
+                .map(([to, amount]) => ({ to, amount })),
             owedBy: ids
                 .filter((other) => ledger[other][member.id] > 0)
                 .map((other) => ({

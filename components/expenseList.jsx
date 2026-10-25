@@ -18,7 +18,7 @@ const formatDate = (date) =>
         year: "numeric",
     }).format(new Date(date))
 
-export default function ExpenseList({ expense, friend, currentUser, onDelete, deleting }) {
+export default function ExpenseList({ expense, friend, payer, currentUser, onDelete, deleting }) {
     const currentSplit = expense.splits.find((split) => split.userId === currentUser.id)
     const friendSplit = friend
         ? expense.splits.find((split) => split.userId === friend.id)
@@ -57,7 +57,7 @@ export default function ExpenseList({ expense, friend, currentUser, onDelete, de
                     </div>
                     <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl p-3 dark:bg-white/[.04]">
                         <div>
-                            <p className="text-xs text-muted-foreground">{currentUserPaid ? "You" : friend?.name ?? "Member"} paid</p>
+                            <p className="text-xs text-muted-foreground">{currentUserPaid ? "You" : payer?.name ?? friend?.name ?? "Member"} paid</p>
                             <p className="mt-1 text-sm font-medium">Total: {formatMoney(expense.amount)}</p>
                         </div>
                         <div className="text-right">
