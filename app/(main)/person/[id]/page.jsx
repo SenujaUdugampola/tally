@@ -123,7 +123,7 @@ export default function PersonPage({ params }) {
               Add expense
             </Button>
             <Button
-              render={<Link href={`/settlements/new?friend=${friend.id}`} />}
+              render={<Link href={`/settlements/user/friend=${friend.id}`} />}
               variant="outline"
               className="h-11 border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"
             >

@@ -107,7 +107,7 @@ export default function GroupPage({ params }) {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button render={<Link href={`/expenses/new?group=${group.id}`} />} className="bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white"><Plus /> Add expense</Button>
-            <Button render={<Link href={`/settlements/new?group=${group.id}`} />} variant="outline" className="border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><HandCoins /> Settle up</Button>
+            <Button render={<Link href={`/settlements/group/group=${group.id}`} />} variant="outline" className="border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><HandCoins /> Settle up</Button>
           </div>
         </header>
 
