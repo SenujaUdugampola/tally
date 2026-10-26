@@ -66,7 +66,7 @@ export default function GroupPage({ params }) {
 
   return (
     <div className="relative min-h-[80vh] overflow-hidden px-4 pb-12 sm:px-10">
-      <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-[#b94bdb]/5 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full blur-3xl" />
       <div className="relative mx-auto max-w-6xl">
         <Button onClick={() => router.back()} variant="ghost" className="mb-6 pl-0 text-muted-foreground hover:bg-transparent hover:text-[#a23bc3]"><ArrowLeft /> Back</Button>
         <header className="mb-6 flex flex-col gap-5 rounded-3xl border border-white/70 bg-[#faf9ff]/90 p-6 shadow-sm dark:border-white/10 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:p-8">
