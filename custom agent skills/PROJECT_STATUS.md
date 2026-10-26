@@ -1,10 +1,12 @@
 # Tally Project Status
 
-**Assessment date:** 2026-10-19
+**Assessment date:** 2026-10-26
 **Repository:** `SenujaUdugampola/tally`  
 **Current branch:** `master`  
-**Current HEAD:** `b244b6f` (`fixes & seperate comp for expense and settleement`)
-**Working tree:** Contains this status-document update; no other changes.
+**Current HEAD:** `3017e78` (`expense api`)
+**Working tree:** Contains uncommitted contacts/group UI changes and an
+in-progress, currently empty expense-creation route/component scaffold. The
+status document itself is also being updated.
 
 ## Executive summary
 
@@ -13,14 +15,14 @@ application foundation: Next.js App Router, Clerk authentication, Convex
 integration, a first-pass expense/group/settlement schema, shared UI primitives,
 contacts and group-management UI, a query-backed dashboard with spending and
 balance views, one-to-one and group detail pages, shared expense/settlement
-record components, group expense aggregation, and an Inngest route/function
-scaffold.
+record components, group expense aggregation, a Convex expense-creation
+mutation, and an Inngest route/function scaffold.
 
 The product is not feature-complete yet. The public home page remains a
-placeholder, expense and settlement creation flows are not implemented, and the
-new detail pages still require broader authorization and correctness validation.
-The newest Convex expense/group functions are not yet covered by automated tests
-or a complete end-to-end creation flow.
+placeholder, the expense-creation UI is only a scaffold, settlement creation is
+not implemented, and the detail pages still require broader authorization and
+correctness validation. The newest Convex expense/group functions are not yet
+covered by automated tests or a complete end-to-end creation flow.
 
 ## What the project is
 
@@ -111,7 +113,9 @@ pagination, and broader validation before it is production-ready.
   one-to-one balances, annual spending, monthly spending, groups with calculated
   balances, and recent activity.
 - [`convex/expenses.js`](./convex/expenses.js) provides a one-to-one expense and
-  settlement lookup plus an authorization check for deleting an expense.
+  settlement lookup, expense deletion, and a first-pass `createExpense`
+  mutation. The mutation validates group membership and split totals but still
+  needs stronger authorization and input validation.
 - [`convex/groups.js`](./convex/groups.js) contains a group expense,
   settlement, member, and balance aggregation query, but this implementation has
   only been validated at build/lint level and still needs representative data
@@ -120,7 +124,13 @@ pagination, and broader validation before it is production-ready.
   [`components/settlementList.jsx`](./components/settlementList.jsx) provide
   shared record cards for person and group detail pages.
 - The contacts page includes a create-group modal that searches users and
-  submits group membership through Convex.
+  submits group membership through Convex. The modal is currently being moved
+  from the underscored components directory into `contacts/components/`.
+- The new expense route exists at
+  [`app/(main)/expenses/new/page.jsx`](../app/(main)/expenses/new/page.jsx),
+  with placeholder component files for category, group, participant, split,
+  and expense-form selection. These files are currently empty, so no expense
+  creation UI is usable yet.
 - `sonner` is mounted through the root layout and is used by the group-creation
   flow for success/error feedback.
 - [`app/api/inngest/route.js`](./app/api/inngest/route.js) exposes Inngest
@@ -148,6 +158,8 @@ pagination, and broader validation before it is production-ready.
   activity, and quick-action controls.
 - Initial one-to-one expense lookup, balance calculation, and expense deletion
   mutation.
+- First-pass Convex `createExpense` mutation with equal/exact/percentage split
+  type storage, split-total tolerance, and group-membership checking.
 - Group expense/settlement/member/balance aggregation query and group detail
   page.
 - Person detail page with separate expense and settlement views.
@@ -162,14 +174,16 @@ pagination, and broader validation before it is production-ready.
   content and a destructive button rather than the intended finished landing
   page.
 - The dashboard reads live Convex queries, but expense and settlement creation
-  actions currently link to routes that are not implemented.
+  actions do not yet provide a complete usable flow. The new expense route and
+  its selector/form components are currently empty scaffolding.
 - Contacts and group creation work in the prototype UI, but the flow still lacks
   invitation management, edit/delete operations, pagination, and comprehensive
   authorization/error UX.
 - Dashboard, person, and group balance calculations need validation against
   representative expense/settlement data before being treated as stable APIs.
-- No expense creation, editing, listing, or split-calculation UI; deletion is
-  currently the only expense mutation.
+- No usable expense creation, editing, listing, or split-calculation UI;
+  deletion and the first-pass `createExpense` mutation are present, but the
+  frontend form is not implemented.
 - No settlement creation, listing, or payment-tracking UI.
 - No group invitation or membership-management flow.
 - Convex expense/group functions are partial and need validator, authorization,
@@ -177,6 +191,9 @@ pagination, and broader validation before it is production-ready.
 - No visible landing-page features/how-it-works sections matching the header
   anchors.
 - No automated application tests are present in the project inventory.
+- Current uncommitted changes move the create-group modal, adjust contacts and
+  dashboard imports, and revise group-page balance calculations; these changes
+  still need validation before being treated as stable.
 - The default README still contains the Create Next App template text rather
   than project-specific setup and product documentation.
 
@@ -186,7 +203,9 @@ pagination, and broader validation before it is production-ready.
 
 Command: `npm run lint`
 
-Result: **Passes with 6 warnings and 0 errors** on the current working tree.
+Result: **Passes with 6 warnings and 0 errors** on the current tree. The
+warnings are the same generated-file disable directives and anonymous default
+export warning described below.
 
 Warnings are primarily generated Convex-file disable directives plus an
 anonymous default export warning in [`convex/auth.config.js`](./convex/auth.config.js).
@@ -197,8 +216,9 @@ Command: `npm run build`
 
 Result: **Passes.**
 
-The current build includes the dynamic `/groups/[id]` and `/person/[id]` routes
-successfully. Next.js still reports that the `middleware` convention is
+The build includes the dynamic `/expenses/new`, `/groups/[id]`, and
+`/person/[id]` routes successfully. Next.js reports that the `middleware`
+convention is
 deprecated and should eventually migrate to `proxy`, but this is a warning and
 not a build-blocking error.
 
@@ -221,11 +241,12 @@ environment; they should not be committed.
 
 ## Recommended next steps
 
-### Priority 1: complete expense and settlement creation
+### Priority 1: complete expense creation end to end
 
-Implement the missing expense and settlement creation routes and mutations.
-Support participant selection and equal, exact, and percentage split
-calculation, with validation and user-facing error handling.
+Implement the new expense route and its empty selector/form components. Connect
+them to `convex.expenses.createExpense`, support participant selection and
+equal, exact, and percentage split calculation, and add validation and
+user-facing error handling. Then implement settlement creation.
 
 ### Priority 2: validate financial calculations
 
@@ -266,9 +287,9 @@ focused tests before exposing it as a stable API.
 
 ## Overall status
 
-**Foundation:** Partially complete; contacts, dashboard, person, and group UI/API are wired
+**Foundation:** Partially complete; contacts, dashboard, person, and group UI/API are wired, with expense API scaffolding added
 **Authentication:** Wired; production build passes with a middleware deprecation warning
-**Data model:** Initial schema complete; contacts/groups and partial expense/settlement API present
-**Frontend product experience:** Prototype; dashboard, contacts, person, and group views are usable, creation flows incomplete
+**Data model:** Initial schema complete; contacts/groups and partial expense/settlement API present, including first-pass expense creation
+**Frontend product experience:** Prototype; dashboard, contacts, person, and group views are usable, while expense/settlement creation flows remain incomplete
 **Background processing:** Scaffold only  
 **Production readiness:** Not ready

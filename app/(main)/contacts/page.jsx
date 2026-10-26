@@ -27,7 +27,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import CreateGroupModal from "./_components/creategroupModal"
+import CreateGroupModal from "./components/creategroupModal"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -204,10 +204,10 @@ const ContactsPage = () => {
             )}
           </TabsContent>
         </Tabs>
-        <CreateGroupModal 
+        <CreateGroupModal
           isOpen={isCreatingGroupModalOpen}
           onClose={() => setIsCreatingGroupModalOpen(false)}
-          // onSuccess={(groupId) => router.push(`/groups/${groupId}`)}
+        // onSuccess={(groupId) => router.push(`/groups/${groupId}`)}
         />
       </div>
     </div>

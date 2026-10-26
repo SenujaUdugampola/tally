@@ -4,7 +4,8 @@ import Link from "next/link"
 import { use } from "react"
 import { useRouter } from "next/navigation"
 import { api } from "@/convex/_generated/api"
-import { useConvexQuery, useConvexMutation } from "@/hooks/useConvexQuery"
+import { useConvexQuery } from "@/hooks/useConvexQuery"
+import { useConvexMutation } from "@/hooks/useConvexQuery"
 import ExpenseList from "@/components/expenseList"
 import SettlementList from "@/components/settlementList"
 import GroupBalance from "@/components/GroupBalance"
@@ -36,28 +37,55 @@ export default function GroupPage({ params }) {
     return <div className="flex min-h-[60vh] items-center justify-center"><LoaderCircle className="size-8 animate-spin text-[#CB6CE7]" /><span className="sr-only">Loading group details</span></div>
   }
 
-  // 1. Destructure 'balances' back out of the query data
-  const { group, members, expenses, settlements, balances, userLookupMap } = data
+  const { group, members, expenses, settlements, userLookupMap } = data
+  const userId = currentUser._id
+  const balanceByMember = Object.fromEntries(members.map((member) => [
+    member.id,
+    { ...member, totalBalance: 0, owedToYou: 0, youOwe: 0 },
+  ]))
 
-  // 2. Map the backend's perfect ledger math to the fields your UI expects
-  const calculatedBalances = balances.map((member) => {
-    // Find how much this member owes the current user
-    const owesCurrentUser = member.owes.find((o) => o.to === currentUser._id)?.amount ?? 0
-    // Find how much the current user owes this member
-    const currentUserOwes = member.owedBy.find((o) => o.from === currentUser._id)?.amount ?? 0
+  for (const expense of expenses) {
+    const payerBalance = balanceByMember[expense.paidByUserId]
+    if (!payerBalance) continue
 
-    return {
-      ...member,
-      totalBalance: member.totalBalance,
-      owedToYou: owesCurrentUser,
-      youOwe: currentUserOwes,
+    for (const split of expense.splits ?? []) {
+      if (split.paid || split.userId === expense.paidByUserId || !balanceByMember[split.userId]) continue
+
+      balanceByMember[split.userId].totalBalance -= split.amount
+      payerBalance.totalBalance += split.amount
+
+      if (expense.paidByUserId === userId) {
+        balanceByMember[split.userId].owedToYou += split.amount
+      } else if (split.userId === userId) {
+        payerBalance.youOwe += split.amount
+      }
     }
-  })
+  }
 
-  // 3. Extract the top-level metrics
-  const userNetBalance = calculatedBalances.find((m) => m.id === currentUser._id)?.totalBalance ?? 0
+  for (const settlement of settlements) {
+    if (balanceByMember[settlement.paidByUserId]) {
+      balanceByMember[settlement.paidByUserId].totalBalance -= settlement.amount
+    }
+    if (balanceByMember[settlement.receivedByUserId]) {
+      balanceByMember[settlement.receivedByUserId].totalBalance += settlement.amount
+    }
+
+    if (settlement.paidByUserId === userId && balanceByMember[settlement.receivedByUserId]) {
+      balanceByMember[settlement.receivedByUserId].youOwe = Math.max(
+        0,
+        balanceByMember[settlement.receivedByUserId].youOwe - settlement.amount
+      )
+    } else if (settlement.receivedByUserId === userId && balanceByMember[settlement.paidByUserId]) {
+      balanceByMember[settlement.paidByUserId].owedToYou = Math.max(
+        0,
+        balanceByMember[settlement.paidByUserId].owedToYou - settlement.amount
+      )
+    }
+  }
+
+  const calculatedBalances = Object.values(balanceByMember)
+  const userNetBalance = balanceByMember[userId]?.totalBalance ?? 0
   const totalSpending = expenses.reduce((total, expense) => total + expense.amount, 0)
-
   const currentUserForUi = {
     id: currentUser._id,
     name: currentUser.name,
@@ -66,7 +94,7 @@ export default function GroupPage({ params }) {
 
   return (
     <div className="relative min-h-[80vh] overflow-hidden px-4 pb-12 sm:px-10">
-      <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-[#b94bdb]/5 blur-3xl" />
       <div className="relative mx-auto max-w-6xl">
         <Button onClick={() => router.back()} variant="ghost" className="mb-6 pl-0 text-muted-foreground hover:bg-transparent hover:text-[#a23bc3]"><ArrowLeft /> Back</Button>
         <header className="mb-6 flex flex-col gap-5 rounded-3xl border border-white/70 bg-[#faf9ff]/90 p-6 shadow-sm dark:border-white/10 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between sm:p-8">
@@ -94,7 +122,7 @@ export default function GroupPage({ params }) {
             <TabsTrigger value="settlements"><HandCoins /> Settlements ({settlements.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="expenses" className="mt-6">
-            {!expenses.length ? <EmptyState type="expenses" groupId={group.id} /> : <div className="space-y-3">{[...expenses].sort((a, b) => b.date - a.date).map((expense) => <ExpenseList key={expense._id} expense={expense} payer={userLookupMap[expense.paidByUserId]} currentUser={currentUserForUi} deleting={deleteExpense.loading} onDelete={deleteExpense.mutate} />)}</div>}
+            {!expenses.length ? <EmptyState type="expenses" groupId={group.id} /> : <div className="space-y-3">{[...expenses].sort((a, b) => b.date - a.date).map((expense) => <ExpenseList key={expense._id} expense={expense} currentUser={currentUserForUi} deleting={deleteExpense.loading} onDelete={deleteExpense.mutate} />)}</div>}
           </TabsContent>
           <TabsContent value="settlements" className="mt-6">
             {!settlements.length ? <EmptyState type="settlements" groupId={group.id} /> : <div className="space-y-3">{[...settlements].sort((a, b) => b.date - a.date).map((settlement) => {

@@ -12,7 +12,7 @@ import {
 } from "recharts"
 import { api } from "@/convex/_generated/api"
 import { useConvexQuery } from "@/hooks/useConvexQuery"
-import CreateGroupModal from "../contacts/_components/creategroupModal"
+import CreateGroupModal from "../contacts/components/creategroupModal"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
