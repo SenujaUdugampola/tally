@@ -64,10 +64,10 @@ export default function GroupPage({ params }) {
 
   for (const settlement of settlements) {
     if (balanceByMember[settlement.paidByUserId]) {
-      balanceByMember[settlement.paidByUserId].totalBalance -= settlement.amount
+      balanceByMember[settlement.paidByUserId].totalBalance += settlement.amount
     }
     if (balanceByMember[settlement.receivedByUserId]) {
-      balanceByMember[settlement.receivedByUserId].totalBalance += settlement.amount
+      balanceByMember[settlement.receivedByUserId].totalBalance -= settlement.amount
     }
 
     if (settlement.paidByUserId === userId && balanceByMember[settlement.receivedByUserId]) {
@@ -106,8 +106,8 @@ export default function GroupPage({ params }) {
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button render={<Link href={`/expenses/new?group=${group.id}`} />} className="bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white"><Plus /> Add expense</Button>
-            <Button render={<Link href={`/settlements/group/${group.id}`} />} variant="outline" className="border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><HandCoins /> Settle up</Button>
+            <Button render={<Link href={`/expenses/new?group=${group.id}`} />} className="h-11 bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white"><Plus /> Add expense</Button>
+            <Button onClick={() => router.push(`/settlements/group/${group.id}`)} variant="outline" className="h-11 border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><HandCoins /> Settle up</Button>
           </div>
         </header>
 

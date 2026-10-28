@@ -6,22 +6,23 @@ export const useConvexQuery = (query, ...args) => {
     const result = useQuery(query, ...args);
 
     const [data, setData] = useState(undefined);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         if (result === undefined) {
             setLoading(true);
-        } else {
-            try{
-                setData(result);
-                setError(null);
-            } catch (err) {
-                setError(err);
-                toast.error(err.message);
-            } finally {
-                setLoading(false);
-            }
+            return;
+        }
+
+        try {
+            setData(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+            toast.error(err.message);
+        } finally {
+            setLoading(false);
         }
     }, [result]);
 
@@ -32,7 +33,7 @@ export const useConvexMutation = (mutation) => {
     const mutationFn = useMutation(mutation);
 
     const [data, setData] = useState(undefined);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const mutate = async (...args) => {

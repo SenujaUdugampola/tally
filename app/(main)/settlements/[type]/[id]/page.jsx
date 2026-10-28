@@ -17,7 +17,7 @@ const SettlementPage = () => {
     const entityId = decodedId?.includes("=")
         ? decodedId.slice(decodedId.indexOf("=") + 1)
         : decodedId;
-    const entityType = type === "person" ? "user" : type;
+    const entityType = type === "person" || type === "user" ? "user" : type;
     const { data, loading, error } = useConvexQuery(
         api.settlements.getSettlementData,
         { entityType, entityId }
@@ -25,13 +25,13 @@ const SettlementPage = () => {
     const { data: currentUser, loading: currentUserLoading } = useConvexQuery(api.users.getCurrentUser);
     const createSettlement = useConvexMutation(api.settlements.createSettlement);
 
-    const isValidType = type === "person" || type === "group";
+    const isValidType = type === "person" || type === "user" || type === "group";
     const isLoading = loading || currentUserLoading;
     const normalizedData = useMemo(() => {
         if (!data) return null;
         return {
             ...data,
-            balances: data.balances?.filter((balance) => balance.youOwe > 0) ?? [],
+            balances: data.balances ?? [],
         };
     }, [data]);
 
