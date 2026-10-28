@@ -308,7 +308,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button render={<Link href="/expenses/new" />} size="lg" className="h-11 bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white hover:from-[#a941c5] hover:to-[#7058d5]"><Plus /> Add Expense</Button>
-            <Button render={<Link href="/settlements/new" />} size="lg" variant="outline" className="h-11 border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><CreditCard /> Settle Up</Button>
+            {/* <Button render={<Link href="/settlements/new" />} size="lg" variant="outline" className="h-11 border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><CreditCard /> Settle Up</Button> */}
           </div>
         </header>
 
