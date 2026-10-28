@@ -107,7 +107,7 @@ export default function GroupPage({ params }) {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button render={<Link href={`/expenses/new?group=${group.id}`} />} className="bg-gradient-to-r from-[#b94bdb] to-[#8068e8] text-white"><Plus /> Add expense</Button>
-            <Button render={<Link href={`/settlements/group/group=${group.id}`} />} variant="outline" className="border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><HandCoins /> Settle up</Button>
+            <Button render={<Link href={`/settlements/group/${group.id}`} />} variant="outline" className="border-[#b94bdb]/40 text-[#a23bc3] hover:bg-[#b94bdb]/10"><HandCoins /> Settle up</Button>
           </div>
         </header>
 
@@ -122,7 +122,10 @@ export default function GroupPage({ params }) {
             <TabsTrigger value="settlements"><HandCoins /> Settlements ({settlements.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="expenses" className="mt-6">
-            {!expenses.length ? <EmptyState type="expenses" groupId={group.id} /> : <div className="space-y-3">{[...expenses].sort((a, b) => b.date - a.date).map((expense) => <ExpenseList key={expense._id} expense={expense} currentUser={currentUserForUi} deleting={deleteExpense.loading} onDelete={deleteExpense.mutate} />)}</div>}
+            {!expenses.length ? <EmptyState type="expenses" groupId={group.id} /> : <div className="space-y-3">{[...expenses].sort((a, b) => b.date - a.date).map((expense) => {
+              const payer = userLookupMap[expense.paidByUserId] ?? members.find((member) => member.id === expense.paidByUserId)
+              return <ExpenseList key={expense._id} expense={expense} payer={payer} currentUser={currentUserForUi} deleting={deleteExpense.loading} onDelete={deleteExpense.mutate} />
+            })}</div>}
           </TabsContent>
           <TabsContent value="settlements" className="mt-6">
             {!settlements.length ? <EmptyState type="settlements" groupId={group.id} /> : <div className="space-y-3">{[...settlements].sort((a, b) => b.date - a.date).map((settlement) => {

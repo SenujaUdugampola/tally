@@ -26,8 +26,15 @@ function BalancePerson({ member, amount, direction }) {
 }
 
 export default function GroupBalance({ userNetBalance, totalSpending, balances = [] }) {
-  const owedToYou = balances.filter((member) => member.owedToYou > 0)
-  const youOwe = balances.filter((member) => member.youOwe > 0)
+  const netBalances = (balances ?? [])
+    .map((member) => ({
+      ...member,
+      netBalance: (member.owedToYou ?? 0) - (member.youOwe ?? 0),
+    }))
+    .filter((member) => member.netBalance !== 0)
+
+  const owedToYou = netBalances.filter((member) => member.netBalance > 0)
+  const youOwe = netBalances.filter((member) => member.netBalance < 0)
   const hasPairwiseBalances = owedToYou.length > 0 || youOwe.length > 0
 
   return (
@@ -60,7 +67,7 @@ export default function GroupBalance({ userNetBalance, totalSpending, balances =
                 </div>
                 <div className="mt-4 space-y-4">
                   {owedToYou.map((member) => (
-                    <BalancePerson key={member.id} member={member} amount={member.owedToYou} direction="owed" />
+                    <BalancePerson key={member.id} member={member} amount={member.netBalance} direction="owed" />
                   ))}
                 </div>
               </>
@@ -76,7 +83,7 @@ export default function GroupBalance({ userNetBalance, totalSpending, balances =
                 </div>
                 <div className="mt-4 space-y-4">
                   {youOwe.map((member) => (
-                    <BalancePerson key={member.id} member={member} amount={member.youOwe} direction="owe" />
+                    <BalancePerson key={member.id} member={member} amount={Math.abs(member.netBalance)} direction="owe" />
                   ))}
                 </div>
               </>

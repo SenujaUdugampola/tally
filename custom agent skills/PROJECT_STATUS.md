@@ -1,12 +1,11 @@
 # Tally Project Status
 
-**Assessment date:** 2026-10-26
+**Assessment date:** 2026-10-27
 **Repository:** `SenujaUdugampola/tally`  
 **Current branch:** `master`  
-**Current HEAD:** `3017e78` (`expense api`)
-**Working tree:** Contains uncommitted contacts/group UI changes and an
-in-progress, currently empty expense-creation route/component scaffold. The
-status document itself is also being updated.
+**Current HEAD:** `b921052` (`settlements api v2`)
+**Working tree:** Contains one untracked settlement-form component scaffold.
+The status document itself is also being updated.
 
 ## Executive summary
 
@@ -15,14 +14,14 @@ application foundation: Next.js App Router, Clerk authentication, Convex
 integration, a first-pass expense/group/settlement schema, shared UI primitives,
 contacts and group-management UI, a query-backed dashboard with spending and
 balance views, one-to-one and group detail pages, shared expense/settlement
-record components, group expense aggregation, a Convex expense-creation
-mutation, and an Inngest route/function scaffold.
+record components, group expense aggregation, working expense creation UI and
+mutation, settlement API scaffolding, and scheduled Inngest email/AI workflows.
 
 The product is not feature-complete yet. The public home page remains a
-placeholder, the expense-creation UI is only a scaffold, settlement creation is
-not implemented, and the detail pages still require broader authorization and
-correctness validation. The newest Convex expense/group functions are not yet
-covered by automated tests or a complete end-to-end creation flow.
+placeholder, the settlement creation page is only a placeholder, and the
+settlement API currently has unresolved runtime issues that require correction.
+The detail pages and financial calculations still require broader authorization,
+correctness validation, and automated coverage.
 
 ## What the project is
 
@@ -63,8 +62,9 @@ family. The intended domain model supports:
   - A loading bar while the current user is synchronized.
 - [`app/(main)/dashboard/page.jsx`](./app/(main)/dashboard/page.jsx) defines the
   authenticated dashboard route and renders balance cards, spending summaries,
-  a monthly chart, groups, recent activity, and quick actions. The quick actions
-  currently target routes whose creation pages do not yet exist.
+  a monthly chart, groups, recent activity, and quick actions. Expense and
+  settlement quick actions now target existing routes, although the settlement
+  route is still a placeholder.
 - [`hooks/useStoreUser.jsx`](./hooks/useStoreUser.jsx) calls the Convex
   `users.store` mutation after authentication.
 - [`app/(main)/contacts/page.jsx`](./app/(main)/contacts/page.jsx) is a client
@@ -116,6 +116,11 @@ pagination, and broader validation before it is production-ready.
   settlement lookup, expense deletion, and a first-pass `createExpense`
   mutation. The mutation validates group membership and split totals but still
   needs stronger authorization and input validation.
+- [`convex/settlements.js`](../convex/settlements.js) provides a
+  `createSettlement` mutation and settlement-balance query for user and group
+  contexts. The current implementation is not production-ready: it references
+  undefined `caller`/`me` variables in execution paths and needs runtime
+  testing and authorization review.
 - [`convex/groups.js`](./convex/groups.js) contains a group expense,
   settlement, member, and balance aggregation query, but this implementation has
   only been validated at build/lint level and still needs representative data
@@ -126,18 +131,22 @@ pagination, and broader validation before it is production-ready.
 - The contacts page includes a create-group modal that searches users and
   submits group membership through Convex. The modal is currently being moved
   from the underscored components directory into `contacts/components/`.
-- The new expense route exists at
-  [`app/(main)/expenses/new/page.jsx`](../app/(main)/expenses/new/page.jsx),
-  with placeholder component files for category, group, participant, split,
-  and expense-form selection. These files are currently empty, so no expense
-  creation UI is usable yet.
+- [`app/(main)/expenses/new/page.jsx`](../app/(main)/expenses/new/page.jsx)
+  now provides a complete first-pass expense form with group/friend selection,
+  category selection, participant selection, equal/percentage/exact splits,
+  payer selection, validation, and Convex submission.
+- [`app/(main)/settlements/[type]/[id]/page.jsx`](../app/(main)/settlements/[type]/[id]/page.jsx)
+  exists as the settlement route, but currently renders only the route
+  parameters. Its untracked [`settlementForm.jsx`](../app/(main)/settlements/[type]/[id]/components/settlementForm.jsx)
+  scaffold is empty.
 - `sonner` is mounted through the root layout and is used by the group-creation
   flow for success/error feedback.
 - [`app/api/inngest/route.js`](./app/api/inngest/route.js) exposes Inngest
   `GET`, `POST`, and `PUT` handlers.
-- [`lib/inngest/functions.js`](./lib/inngest/functions.js) contains a sample
-  `app/task.created` function that returns a processed task after a one-second
-  pause. It is not connected to expense workflows.
+- [`lib/inngest/paymentReminder.js`](../lib/inngest/paymentReminder.js) defines
+  the daily outstanding-payment reminder workflow.
+- [`lib/inngest/spendingInsights.js`](../lib/inngest/spendingInsights.js)
+  defines the monthly Gemini-powered spending-insights email workflow.
 - [`app/globals.css`](./app/globals.css) contains the Tailwind/shadcn theme and
   light/dark design tokens.
 
@@ -160,6 +169,9 @@ pagination, and broader validation before it is production-ready.
   mutation.
 - First-pass Convex `createExpense` mutation with equal/exact/percentage split
   type storage, split-total tolerance, and group-membership checking.
+- Initial Convex settlement creation and balance-query API.
+- Scheduled payment-reminder email and monthly spending-insight workflows using
+  Inngest, Convex, Resend, and Gemini.
 - Group expense/settlement/member/balance aggregation query and group detail
   page.
 - Person detail page with separate expense and settlement views.
@@ -173,27 +185,26 @@ pagination, and broader validation before it is production-ready.
 - The root page [`app/page.js`](./app/page.js) still contains placeholder
   content and a destructive button rather than the intended finished landing
   page.
-- The dashboard reads live Convex queries, but expense and settlement creation
-  actions do not yet provide a complete usable flow. The new expense route and
-  its selector/form components are currently empty scaffolding.
+- The expense creation route is usable at the current prototype level, but it
+  still needs end-to-end data testing and stronger backend validation.
+- Settlement creation is not usable end to end: the route/form are placeholders,
+  and the new settlement backend has unresolved `caller`/`me` runtime defects.
 - Contacts and group creation work in the prototype UI, but the flow still lacks
   invitation management, edit/delete operations, pagination, and comprehensive
   authorization/error UX.
 - Dashboard, person, and group balance calculations need validation against
   representative expense/settlement data before being treated as stable APIs.
-- No usable expense creation, editing, listing, or split-calculation UI;
-  deletion and the first-pass `createExpense` mutation are present, but the
-  frontend form is not implemented.
-- No settlement creation, listing, or payment-tracking UI.
+- No expense editing UI or automated split-calculation tests.
+- No usable settlement creation form or payment-tracking UI.
 - No group invitation or membership-management flow.
 - Convex expense/group functions are partial and need validator, authorization,
   pagination, and correctness work before production use.
 - No visible landing-page features/how-it-works sections matching the header
   anchors.
 - No automated application tests are present in the project inventory.
-- Current uncommitted changes move the create-group modal, adjust contacts and
-  dashboard imports, and revise group-page balance calculations; these changes
-  still need validation before being treated as stable.
+- The only current uncommitted product file is an empty settlement-form
+  scaffold; the latest expense and settlement API/UI work is committed through
+  HEAD.
 - The default README still contains the Create Next App template text rather
   than project-specific setup and product documentation.
 
@@ -216,8 +227,9 @@ Command: `npm run build`
 
 Result: **Passes.**
 
-The build includes the dynamic `/expenses/new`, `/groups/[id]`, and
-`/person/[id]` routes successfully. Next.js reports that the `middleware`
+The build includes the dynamic `/expenses/new`, `/groups/[id]`,
+`/person/[id]`, and `/settlements/[type]/[id]` routes successfully. Next.js
+reports that the `middleware`
 convention is
 deprecated and should eventually migrate to `proxy`, but this is a warning and
 not a build-blocking error.
@@ -241,22 +253,23 @@ environment; they should not be committed.
 
 ## Recommended next steps
 
-### Priority 1: complete expense creation end to end
+### Priority 1: finish settlement creation end to end
 
-Implement the new expense route and its empty selector/form components. Connect
-them to `convex.expenses.createExpense`, support participant selection and
-equal, exact, and percentage split calculation, and add validation and
-user-facing error handling. Then implement settlement creation.
+Replace the placeholder settlement page and empty form component with a usable
+user/group settlement flow. Fix the undefined `caller`/`me` variables in
+`convex/settlements.js`, enforce caller and membership authorization, and add
+runtime tests for settlement creation and balance updates.
 
-### Priority 2: validate financial calculations
+### Priority 2: validate expense and settlement calculations
 
 Test the dashboard, person, and group calculations with representative seeded
 data:
 
 1. Verify one-to-one and group balances.
 2. Verify settlements reduce/increase balances in the correct direction.
-3. Verify monthly and annual spending totals.
-4. Add focused automated tests for split and balance behavior.
+3. Verify expense split validation and payer handling.
+4. Verify monthly and annual spending totals.
+5. Add focused automated tests for split, balance, and settlement behavior.
 
 ### Priority 3: finish contacts and group scaffolding
 
@@ -278,8 +291,8 @@ focused tests before exposing it as a stable API.
 
 - Replace the placeholder home page with the intended landing page.
 - Add group management and invitations.
-- Connect Inngest to a real asynchronous workflow only when a product use case
-  requires it.
+- Test and harden the existing Inngest payment-reminder and monthly spending
+  insight workflows, including external email/AI failure handling.
 - Add focused tests for split calculations, authorization, balance calculation,
   and settlement behavior.
 - Replace the template README with project-specific local development,
@@ -287,9 +300,9 @@ focused tests before exposing it as a stable API.
 
 ## Overall status
 
-**Foundation:** Partially complete; contacts, dashboard, person, and group UI/API are wired, with expense API scaffolding added
+**Foundation:** Partially complete; contacts, dashboard, person, group, and expense UI/API are wired, with settlement scaffolding added
 **Authentication:** Wired; production build passes with a middleware deprecation warning
-**Data model:** Initial schema complete; contacts/groups and partial expense/settlement API present, including first-pass expense creation
-**Frontend product experience:** Prototype; dashboard, contacts, person, and group views are usable, while expense/settlement creation flows remain incomplete
-**Background processing:** Scaffold only  
+**Data model:** Initial schema complete; contacts/groups, expense creation, and initial settlement API are present
+**Frontend product experience:** Prototype; dashboard, contacts, person, group, and expense creation views are usable, while settlement creation remains incomplete
+**Background processing:** Inngest payment reminders and monthly AI spending insights are implemented but need runtime validation
 **Production readiness:** Not ready
