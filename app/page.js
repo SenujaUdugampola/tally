@@ -105,7 +105,7 @@ export default function Home() {
   return (
     <main className="overflow-hidden bg-background">
       <section className="relative isolate px-4 pb-20 pt-32 sm:px-6 lg:px-8 lg:pb-28 lg:pt-40">
-        <div className="absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(circle_at_top_right,rgba(185,75,219,0.2),transparent_45%),radial-gradient(circle_at_top_left,rgba(185,75,219,0.12),transparent_40%)]" />
+        <div className="absolute inset-x-0 top-0 -z-10 h-[42rem] bg-[radial-gradient(circle_at_top_right,rgba(185,75,219,0.2),transparent_45%),radial-gradient(circle_at_top_left,rgba(185,75,219,0.12),transparent_40%)] [mask-image:linear-gradient(to_bottom,black_0%,black_68%,transparent_100%)]" />
         <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
           <div className="max-w-2xl">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#b94bdb]/30 bg-[#b94bdb]/10 px-3 py-1.5 text-sm font-medium text-[#b94bdb] dark:border-[#b94bdb]/40 dark:bg-[#b94bdb]/20 dark:text-[#b94bdb]/90">
@@ -118,6 +118,19 @@ export default function Home() {
                 without the math.
               </span>
             </h1>
+            <div className="relative mx-auto mt-8 w-full max-w-xl lg:hidden">
+              <div className="absolute -inset-4 rounded-[2rem] bg-[#b94bdb]/10 blur-2xl" />
+              <div className="relative overflow-hidden rounded-[1.5rem] border border-[#b94bdb]/25 bg-[#f6edff] p-2 shadow-2xl shadow-[#b94bdb]/20">
+                <Image
+                  src="/hero-image.jpg"
+                  alt="Friends sharing expenses with Tally"
+                  width={2000}
+                  height={1500}
+                  priority
+                  className="h-auto w-full rounded-2xl object-cover"
+                />
+              </div>
+            </div>
             <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground sm:text-xl">
               The easiest way to track balances, split bills with friends and
               family, and settle up in seconds.
@@ -151,7 +164,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-xl">
+          <div className="relative mx-auto hidden w-full max-w-xl lg:block">
             <div className="absolute -inset-4 rounded-[2rem] bg-[#b94bdb]/10 blur-2xl" />
             <div className="relative overflow-hidden rounded-[1.5rem] border border-[#b94bdb]/25 bg-[#f6edff] p-2 shadow-2xl shadow-[#b94bdb]/20">
               <Image
