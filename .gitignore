@@ -26,6 +26,8 @@
 
 # custom agent skills
 /custom agent skills/
+/.agents/
+/.claude/
 
 # debug
 npm-debug.log*
