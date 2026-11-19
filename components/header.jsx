@@ -65,10 +65,10 @@ const Header = () => {
             <UserButton />
           </Authenticated>
           <Unauthenticated>
-            <SignInButton>
+            <SignInButton forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
               <Button variant={"ghost"}>Sign In</Button>
             </SignInButton>
-            <SignUpButton>
+            <SignUpButton forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
               <Button className="bg-purple-400 hover:bg-purple-500 text-white font-medium py-2 px-4 rounded">
                 Get Started
               </Button>

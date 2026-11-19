@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/tabs"
 import CreateGroupModal from "./components/creategroupModal"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 const getInitials = (name = "") =>
   name
@@ -74,6 +74,8 @@ const ContactsPage = () => {
   const users = data?.users ?? []
   const groups = data?.groups ?? []
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") === "groups" ? "groups" : "friends"
 
   if (loading) {
     return (
@@ -121,7 +123,7 @@ const ContactsPage = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="friends" className="mt-2">
+        <Tabs defaultValue={defaultTab} className="mt-2">
           <TabsList variant="line">
             <TabsTrigger value="friends" className="px-8 py-2">
               <UserPlus />

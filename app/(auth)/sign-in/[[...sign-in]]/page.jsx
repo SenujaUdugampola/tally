@@ -5,7 +5,7 @@ const SignInPage = () => {
   return (
     // Add a simple loading skeleton or text as the fallback
     <Suspense fallback={<div className="flex justify-center mt-10">Loading...</div>}>
-      <SignIn />
+      <SignIn forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard" />
     </Suspense>
   );
 };

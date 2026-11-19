@@ -186,7 +186,7 @@ function SpendingSummary({ totalSpent, monthlySpending }) {
 function RecentActivity({ activity }) {
   return (
     <section className="rounded-2xl border border-[#ead8ef] bg-[#fffaff]/90 p-5 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-white/5 sm:p-6">
-      <SectionHeader title="Recent activity" description="Your latest expenses and settlements" href="/activity" />
+      <SectionHeader title="Recent activity" description="Your latest expenses and settlements" />
       {!activity?.length ? (
         <EmptyState icon={Receipt} title="No activity yet" description="Your recent shared expenses will appear here." />
       ) : (
@@ -236,7 +236,7 @@ function BalanceBreakdown({ balance }) {
 
   return (
     <section className="rounded-2xl border border-[#ead8ef] bg-[#fffaff]/90 p-5 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-white/5 sm:p-6">
-      <SectionHeader title="Balance breakdown" description="One-to-one balances" href="/balances" />
+      <SectionHeader title="Balance breakdown" description="One-to-one balances" href="/contacts?tab=friends" />
       <div>
         <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-600"><ArrowDownLeft className="size-3" /> Owed to you</div>
         {renderRows(balance?.ownDetails?.youAreOwed, true)}
@@ -252,7 +252,7 @@ function BalanceBreakdown({ balance }) {
 function GroupList({ groups, onCreate }) {
   return (
     <section className="rounded-2xl border border-[#f0e5f5] bg-[#faf9ff]/90 p-5 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-white/10 dark:bg-white/5 sm:p-6">
-      <SectionHeader title="Your groups" description="Shared spaces you belong to" href="/contacts" />
+      <SectionHeader title="Your groups" description="Shared spaces you belong to" href="/contacts?tab=groups" />
       {!groups?.length ? (
         <EmptyState
           icon={Users}
